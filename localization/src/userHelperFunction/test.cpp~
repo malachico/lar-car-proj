@@ -1,0 +1,14 @@
+#include "coordinateTransformations.h"
+
+using namespace std;
+int main()
+{
+  sensor_msgs::NavSatFix point;
+  point.altitude = 0;
+  point.latitude = 31.2621;
+  point.longitude = 34.8035;
+  geometry_msgs::Point var0;
+  
+  var0 = geo2xy(point);
+  cout << var0 << endl;
+}
