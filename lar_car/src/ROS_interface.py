@@ -4,7 +4,6 @@ from std_msgs.msg import Int8
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from gazebo_msgs.msg import ModelStates
 from sensor_msgs.msg import Image
-import simpleguitk as simplegui
 from PIL import Image as Img
 from PIL import ImageFilter,ImageTk
 from tf.transformations import euler_from_quaternion
@@ -35,8 +34,8 @@ class var:
         else:
             self.var = 0
 
-PX = 1624
-PY =  1224
+PX = 1288
+PY =  964
 
 class ROS:
     def __init__(self,imageR,imageL):
