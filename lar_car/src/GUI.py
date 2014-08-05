@@ -26,15 +26,56 @@ class gtk_object:
       return False
       
 class car_gui:
+  def hello_button(self,widget):
+    print "hello world"
+    
   def __init__(self,SIZE,key_down_func):
     # Main window
     self.win = gtk.Window(gtk.WINDOW_TOPLEVEL)
     self.set_main_window(SIZE)
     self.win.connect('key_press_event', key_down_func)    
+    # RIGHT BOX
+    self.right_box = gtk.VBox()
+    self.mainbox.pack_start(self.right_box)
+    self.right_box.set_size_request(300,800)
     
+    # Add Location Frame
+    self.location_frame = gtk.Frame(label='Location')
+    self.location_frame.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+    self.right_box.pack_start(self.location_frame)
+    self.location_frame.set_size_request(300,200)
+    #print dir(self.frame)
+    self.loc_txt = gtk.Label()
+    #self.loc_txt.show()
+    self.location_frame.add(self.loc_txt)
+
+    
+    # Add Auto/Manual Frame
+    self.AM_frame = gtk.Frame(label='Auto/Manual')
+    self.AM_frame.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+    self.right_box.pack_start(self.AM_frame)
+    self.AM_frame.set_size_request(10,10)
+    #Add button
+    self.button2 = gtk.Button('GO')
+    self.button2.connect('clicked',self.hello_button)
+    self.AM_frame.add(self.button2)
+    
+    # Add drive Frame
+    self.drive_frame = gtk.Frame(label='Connect')
+    self.drive_frame.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+    self.right_box.pack_start(self.drive_frame)
+    #Add button
+    self.button = gtk.Button('GO')
+    self.button.connect('clicked',self.hello_button)
+    self.drive_frame.add(self.button)
+    
+    
+    # LEFT BOX
+    self.left_box = gtk.VBox()
+    self.mainbox.pack_start(self.left_box)
     # Image stuff
     self.imgbox = gtk.HBox() #image box
-    self.mainbox.pack_start(self.imgbox,False)
+    self.left_box.pack_start(self.imgbox,False)
     self.imageR = gtk.Image()#define image
     self.imageL = gtk.Image()#define image
     self.imgbox.pack_start(self.imageR)
@@ -42,7 +83,10 @@ class car_gui:
     self.imgbox.set_size_request(800,300)
     
     # Web stuff #
+    self.web_box = gtk_object(gtk.VBox(),True)
+    self.left_box.pack_start(self.web_box.obj)
     # Address and button
+    
     self.address_box =gtk_object(gtk.HBox())
     self.addressbar = gtk.Entry()
     self.web = webkit.WebView()
@@ -50,14 +94,15 @@ class car_gui:
     self.gobutton.connect('clicked',self.go_button)
     self.address_box.obj.pack_start(self.addressbar)
     self.address_box.obj.pack_start(self.gobutton,False)
-    self.mainbox.pack_start(self.address_box.obj, False)
+    self.web_box.obj.pack_start(self.address_box.obj,False)
     self.menu.add_item(("/Web/Show|Hide address bar","<control>H", self.show_hide,0,"<CheckItem>"))
     self.menu.add_item(("/Web/Show|Hide website","<control>H", self.show_hide,1,"<CheckItem>"))
     
     # Web interface
-    self.scroller = gtk_object(gtk.ScrolledWindow(),True)
-    self.mainbox.pack_start(self.scroller.obj)
-    self.scroller.obj.add(self.web)
+    self.scroller = gtk.ScrolledWindow()
+    self.web_box.obj.pack_start(self.scroller)
+    self.scroller.add(self.web)
+    
     
   def init_system(self):
     #start menu 
@@ -66,7 +111,7 @@ class car_gui:
     self.mainbox.show()
     self.win.show_all()
     self.address_box.set_show_hide()
-    self.scroller.set_show_hide()
+    self.web_box.set_show_hide()
   
   def on_key_press_event(self, widget, event):
     key = gtk.gdk.keyval_name(event.keyval)
@@ -77,7 +122,7 @@ class car_gui:
     if widget == 0:
       self.address_box.is_shown_toggle()
     elif widget == 1:
-      self.scroller.is_shown_toggle()
+      self.web_box.is_shown_toggle()
     else:
       print 'Unknown request ',widget
     
@@ -86,7 +131,7 @@ class car_gui:
     self.win.set_size_request(SIZE[0],SIZE[1])
     self.win.connect('destroy',self.run_quit)
     # add general box
-    self.mainbox = gtk.VBox()
+    self.mainbox = gtk.HBox()
     self.win.add(self.mainbox)
     self.menu = menu.myMenu()
     

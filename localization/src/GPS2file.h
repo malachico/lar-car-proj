@@ -21,7 +21,8 @@ inline const std::string currentDateTime() {
 inline void gps2file(double altitude,double latitude,double longitude)
 {
 	std::cout << "Saving GPS coordinates to file\n";
-	std::ofstream f ("gps_init.txt");
+	std::ofstream f ( (string(getenv("HOME"))+"/.ros/gps_init.txt" ).c_str());
+	
 	if (f.is_open())
 	{
 	  f << "Time " << currentDateTime() << "\n";

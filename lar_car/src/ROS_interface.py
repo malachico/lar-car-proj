@@ -38,9 +38,10 @@ PX = 1288
 PY =  964
 
 class ROS:
-    def __init__(self,imageR,imageL):
-	self.imageR_canvas = imageR
-	self.imageL_canvas = imageL
+    def __init__(self,gui):
+	self.imageR_canvas = gui.imageR
+	self.imageL_canvas = gui.imageL
+	self.gui = gui
 	#self.canvas = canvas
         self.speed = var(0,5)
         self.steer = var(-10,10)
@@ -88,6 +89,7 @@ class ROS:
         self.loc['y'] = obj.pose.pose.position.y
         theta = euler_from_quaternion( numpy.array((obj.pose.pose.orientation.x, obj.pose.pose.orientation.y, obj.pose.pose.orientation.z, obj.pose.pose.orientation.w), dtype=numpy.float64))
         self.loc['theta'] = theta[2]
+        self.gui.loc_txt.set_label('x:%.2f\nx:%.2f\nx:%.2f\n'%(self.loc['x'],self.loc['y'],self.loc['theta']))
 
     def imageR_callback(self, data):
 	self.img = numpy.array(Img.frombuffer("RGB", [PX, PY], data.data, 'raw', "RGB", 0, 1))#.crop((0, PY,PX, PY))#.resize((40, 25)).convert('1')

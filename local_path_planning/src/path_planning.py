@@ -27,7 +27,9 @@ def image_callback(data):
   image = Img.frombuffer("RGB", [PX, PY], data.data, 'raw', "RGB", 0, 1).crop((0, PY/2,PX, PY))#.resize((40, 25)).convert('1')
   run_path_planner()
 
-def point_selection(x,y):
+def pix2xy(x,y):
+    Py = 40
+    Px = 25
     FOV = 1.3963  # Field Of (camera's) View
     H = 1.97  # [meters] - location of camera on Z axis
     ###Xpix = 1624  # amount of pixels on x
@@ -35,21 +37,22 @@ def point_selection(x,y):
     
     alpha = (math.pi-FOV)/2.0
     mini = H*math.tan(alpha)
-    beta = y/(40)*FOV/2.0
+    beta = (y - Py/2.0)/(Py/2.0)*FOV/2.0
     if x==0:
         xval = 100
     else:
-        xval = 25/2*mini/x
+        xval = (Px - x)*mini/x
     yval = xval*math.tan(beta)
-    print 'x:',x,'	y:',y,'	xval:',xval,'		yval:',yval
+    #sys.stdout.write( 'x:%d  y:%d  xval:%.2f  yval:%.2f'%(x,y,xval,yval))
     return [xval-0.351,yval-0.0341]
 
 def getWP(a,b,loc):
-    WP = point_selection(b,a)
+    WP = pix2xy(b,a)
     WPx = WP[0]*math.cos(loc['theta']) + WP[1]*math.sin(loc['theta'])
     WPy = -WP[0]*math.sin(loc['theta']) + WP[1]*math.cos(loc['theta'])
     WP[0] = WPx + loc['x']
     WP[1] = -WPy + loc['y']
+    #sys.stdout.write( '  WPx:%.2f  WPy:%.2f\n'%(WP[0],WP[1]))
     return WP
   
 def run_path_planner():
