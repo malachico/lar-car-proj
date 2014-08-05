@@ -2,7 +2,7 @@
 import rospy
 from sensor_msgs.msg import Image
 from PIL import Image as Img
-from ImageProc import find_position, colorize
+from ImageProc import find_position
 from geometry_msgs.msg import PoseWithCovarianceStamped,Point
 from tf.transformations import euler_from_quaternion
 from PIL import ImageFilter
@@ -35,12 +35,13 @@ def point_selection(x,y):
     
     alpha = (math.pi-FOV)/2.0
     mini = H*math.tan(alpha)
-    beta = y/(LENGTH/2.0)*FOV/2.0
+    beta = y/(40)*FOV/2.0
     if x==0:
         xval = 100
     else:
-        xval = WIDTH/2*mini/x
+        xval = 25/2*mini/x
     yval = xval*math.tan(beta)
+    print 'x:',x,'	y:',y,'	xval:',xval,'		yval:',yval
     return [xval-0.351,yval-0.0341]
 
 def getWP(a,b,loc):
@@ -54,18 +55,9 @@ def getWP(a,b,loc):
 def run_path_planner():
   im = image.resize((40,25)).convert('1').filter(ImageFilter.MedianFilter(3)).filter(ImageFilter.MedianFilter(5)).point(lambda p: p> 0 and 255)
   im.show()
-  #raw_input('Press any key')
   pixels = list(im.getdata())
-  #print len(pixels)
-  #for idx,p in enumerate(pixels):
-    #sys.stdout.write(str(p/255))
-    #if not (idx%40):
-      #sys.stdout.write('\n')
-  #sys.stdout.write('\n')
   autopoint = find_position(pixels)
-  autopoint[0]*=10
-  autopoint[1]*=10
-  WP = getWP(autopoint[0]- WIDTH/2,autopoint[1],loc)
+  WP = getWP(autopoint[0],autopoint[1],loc)
   msg = Point()
   msg.x = WP[0]
   msg.y = WP[1]
