@@ -1,0 +1,6 @@
+<launch>
+	<node name="localization" pkg="localization" type="loc_node" />
+	<node name="lpp" pkg="local_path_planning" type="path_planning.py" /> 
+	<node name="llc" pkg="lowlevelcontrol" type="low_level_control.py" />
+	
+</launch>

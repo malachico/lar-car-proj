@@ -2,7 +2,7 @@
 import rospy
 from ros_interface import ROS
 from geometry_msgs.msg import Point
-from std_msgs.msg import String
+from std_msgs.msg import Float64
 import math
 ros = ROS()
 gas = 0
@@ -46,7 +46,7 @@ def PID(dist,dt):
 if __name__ == "__main__":
   print 'Starting Low level control...'
   rospy.Subscriber('/LPP/WP',Point,get_wp)
-  rospy.Subscriber('/Drive',String,set_gas)
+  rospy.Subscriber('/Drive',Float64,set_gas)
   print 'Node is Running. Will publish to /drivingVic topics'
   rospy.spin()
   print 'LLC: "Goodbye..."'
