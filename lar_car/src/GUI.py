@@ -1,16 +1,11 @@
 #!/usr/bin/env python
+from ROS_interface import ROS
 import thread,time
 from PIL import ImageTk
 import pygtk
 import gtk,webkit
 import menu
 from std_msgs.msg import Float64
-
-def change_bg_color(widget,color_string):
-  color = widget.get_colormap().alloc_color(color_string)
-  style = widget.get_style().copy()
-  style.bg[gtk.STATE_NORMAL] = color
-  widget.set_style(style)
 
 class gtk_object:
   def __init__(self,obj,init_condition=False):
@@ -47,7 +42,8 @@ class car_gui:
       self.drive.publish(Float64(0))
       widget.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color('red'))
     
-  def __init__(self,SIZE,key_down_func):
+  def __init__(self,SIZE,key_down_func=None):
+    
     # Main window
     self.win = gtk.Window(gtk.WINDOW_TOPLEVEL)
     self.set_main_window(SIZE)
@@ -61,7 +57,6 @@ class car_gui:
     self.location_frame = gtk.Frame(label='Location')
     self.location_frame.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
     self.left_box.pack_start(self.location_frame)
-    self.location_frame.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color('black'))
     self.location_frame.set_size_request(100,0)
     #print dir(self.frame)
     self.loc_txt = gtk.Label()
@@ -72,7 +67,6 @@ class car_gui:
     self.wp_frame = gtk.Frame(label='Way Point')
     self.wp_frame.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
     self.left_box.pack_start(self.wp_frame)
-    self.wp_frame.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color('black'))
     self.wp_frame.set_size_request(100,0)
     #print dir(self.frame)
     self.wp_txt = gtk.Label('x: 0\ny: 0')
@@ -134,6 +128,8 @@ class car_gui:
     self.web_box.obj.pack_start(self.scroller)
     self.scroller.add(self.web)
     
+    #ROS object
+    self.ros = ROS(self)
     
   def init_system(self):
     #start menu 
