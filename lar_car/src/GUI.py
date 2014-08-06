@@ -178,6 +178,7 @@ class car_gui:
     gtk.main()
     
   def run_quit(self,widget):
+    self.drive.publish(Float64(0))
     gtk.main_quit()
   #def choose_image(widget):
 	#[fn,response] = file_chooser.file_chooser()
