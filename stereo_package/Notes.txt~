@@ -1,0 +1,25 @@
+--The Perception Package--
+
+-Updated 25 Jun 2014
+
+Implemented Features:
+1. Build a height map from the data that arrives from the IBEO, SICK and FLEA sensors.
+2. Publish a map and a mini-map with obstacle information and road types.
+3. Provide a visualization tool for everything
+
+Features that work correctly:
+1. The basic height map and mini-map is published with obstacle information.
+2. The visualization tool can be used (see below how to use).
+
+Problems and unimplemented things:
+1. Stereo vision is not used for mapping due to the poor performance of the stereo matching algorithm, until a new algorithm is found.
+
+
+How to use visualization tool:
+Once the framework is running, open a terminal and enter this:
+
+    rostopic pub /PER/VISUAL std_msgs/Bool "data: true" 
+
+And two windows will pop open. The smaller window is the heightmap which is sent on the /MAP topic.
+The large window is the terrain types window for the /MAP topic. Pink color represents unexplored area, 
+black is obstacles and green is passable terrain. The thresholding slope angle chosen is arctan(0.1)
