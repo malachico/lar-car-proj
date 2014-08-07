@@ -1,0 +1,69 @@
+﻿
+<!DOCTYPE html>
+<html>
+  <head>
+  </style>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map-canvas { height: 80% }
+    </style>
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAjjqLfpuSrTxLVDG_DdtEnIOqkwviSdOc">
+    </script>
+    <script type="text/javascript">
+      var map = 0;
+      var marker = 0;
+      function initialize() 
+	  {
+        var mapOptions = {
+          center: new google.maps.LatLng(25,25),
+          zoom: 8
+        };
+        map = new google.maps.Map(document.getElementById("map-canvas"),
+            mapOptions);
+      }
+      google.maps.event.addDomListener(window, 'load', initialize);
+      function putMarker(x,y)
+      {
+		var myLatlng = new google.maps.LatLng(x,y);
+		if (!marker)
+		{
+			marker = new google.maps.Marker({
+			  center: myLatlng,
+			  position: myLatlng,
+			  map: map,
+			  title:"GPS location"
+			});
+		}
+		else
+		marker.setPosition(myLatlng);
+		map.setCenter(myLatlng);
+      }
+      function getCoordinates()
+      {
+	      $.getJSON("http://localhost:8000/googleMapPy/", function (result) {
+		  //alert(result.x +", "+result.y);
+	      putMarker(result.x,result.y);
+	  });
+      }
+      var interval;
+      function start()
+      {
+	interval = window.setInterval( function(){getCoordinates();}, 1000);
+      }
+      function stop()
+      {
+	window.clearInterval(interval)
+      }
+    </script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  </head>
+    <body>
+      <input onclick="start()" id="myButton" type="button" value="start" />
+      <input onclick="stop()" id="myButton2" type="button" value="stop" />
+      <div id="map-canvas"/>
+    </body>
+</html>
+         

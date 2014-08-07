@@ -5,6 +5,37 @@
 import pygtk
 pygtk.require('2.0')
 import gtk
+import os
+import subprocess
+
+def add_all_menu_items(me):
+  #Packages Items
+  me.menu.add_item(("/Packages/Localization",         None, run_subprocess,1,None))
+  me.menu.add_item(("/Packages/Local path planning",  None, run_subprocess,2,None))
+  me.menu.add_item(("/Packages/Low level control",    None, run_subprocess,3,None))
+  me.menu.add_item(("/Packages/sep1",                 None, None,0,"<Separator>"))
+  me.menu.add_item(("/Packages/Run all packages",     "<control>A", run_subprocess,4,None))
+  
+  
+  #Web Items
+  me.menu.add_item(("/Web/Show|Hide address bar","<control>H", me.show_hide,0,"<CheckItem>"))
+  me.menu.add_item(("/Web/Show|Hide website","<control>H", me.show_hide,1,"<CheckItem>"))
+  me.menu.add_item(("/Web/sep2",                 None, None,0,"<Separator>"))
+  me.menu.add_item(("/Web/Start Server",    None, run_subprocess,5,None))
+  
+
+def run_subprocess(widget,data=None):
+  if widget == 1:
+    st = os.path.dirname(os.path.realpath(__file__)) + '/../../scripts/localization.sh'
+  elif widget == 2:
+    st = os.path.dirname(os.path.realpath(__file__)) + '/../../scripts/lpp.sh'
+  elif widget == 3:
+    st = os.path.dirname(os.path.realpath(__file__)) + '/../../scripts/llc.sh'
+  elif widget == 4:
+    st = os.path.dirname(os.path.realpath(__file__)) + '/../../scripts/run_all.sh'
+  elif widget == 5:
+    st = os.path.dirname(os.path.realpath(__file__)) + '/../../scripts/google_map_server.sh'  
+  subprocess.call([st])
 
 class myMenu:
 
@@ -68,8 +99,7 @@ class myMenu:
             ( "/File/Save _As", None,         None, 0, None ),
             ( "/File/sep1",     None,         None, 0, "<Separator>" ),
             ( "/File/Quit",     "<control>Q", gtk.main_quit, 0, None ),
-            ( "/_Options",      None,         None, 0, "<Branch>" ),
-            ( "/Options/Test",  None,         None, 0, None ),
+            ( "/_Packages",      None,         None, 0, "<Branch>" ),
             ( "/Web",           None,         None, 0, "<Branch>" ),
             ( "/_Help",         None,         None, 0, "<LastBranch>" ),
             ( "/_Help/About",   None,         None, 0, None ),
