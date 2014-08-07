@@ -4,18 +4,18 @@ project(stereo_package)
 find_package(catkin REQUIRED COMPONENTS
     roscpp rospy
     cv_bridge
-    robil2conf
+#     robil2conf
     gazebo_ros
-    decision_making decision_making_parser
+#     decision_making decision_making_parser
 )
 find_package(OpenCV 2)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(gazebo REQUIRED)
 catkin_package(
 	CATKIN_DEPENDS
-	    robil2conf
+# 	    robil2conf
 	    gazebo_ros
-	    decision_making decision_making_parser
+# 	    decision_making decision_making_parser
 )
 ###########
 ## Build ##
