@@ -87,7 +87,8 @@ class HeightMap
 	void setBlendFunc(double (*f)(double lastHeight, double curHeight));
 	
 	static double lowPassFilter(double last, double curr);
-	static double lowPassFilter(double last, double curr);
+	static double maxHeightFilter(double last, double curr);
+	static double overrideFilter(double last, double curr);
         
     private:
         

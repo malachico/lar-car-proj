@@ -4,9 +4,9 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
-using namespace std;
-using namespace cv;
 
+using namespace cv;
+using std::vector;
 /**
     Robil-2 heightmap for the mapping component.
     Designed according to specs.
@@ -88,6 +88,7 @@ class HeightMap
 	
 	static double lowPassFilter(double last, double curr);
 	static double maxHeightFilter(double last, double curr);
+	static double overrideFilter(double last, double curr);
         
     private:
         
