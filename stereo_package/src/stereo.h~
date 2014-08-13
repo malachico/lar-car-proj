@@ -88,7 +88,7 @@ void ProjectDepthImage(HeightMap* map, Mat img, Vec3D myRight, Vec3D myFront, Ve
       if(depth < 40 || depth > 150) continue;
       float depth_m = pow(float(depth)/753.42, -1.0661);
       //depth_m = pow(depth, 0.5);
-      float right_m = depth_m * sin(fov) * 2*(j - img.cols/2)/img.cols;
+      float right_m = depth_m * sin(fov) * 2*(-j + img.cols/2)/img.cols;
       float up_m = depth_m * sin(fov) * 2*(-i + img.rows/2)/img.rows;
       Vec3D pos = myPos.add(myFront.multiply(depth_m).add(myRight.multiply(right_m).add(myUp.multiply(up_m))));
       map->setAbsoluteHeightAt((int)(5*pos.x), (int)(5*pos.y), (pos.z));

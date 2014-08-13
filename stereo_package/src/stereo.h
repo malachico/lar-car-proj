@@ -203,7 +203,7 @@ Mat handleStereo(Mat left, Mat right)
   
   bitwise_and(stereo, median, stereo);
   imshow("stereo", stereo); 
-  
+  waitKey(1);
   
   //imshow("asdf", median); 
    //imshow("L", l); 
