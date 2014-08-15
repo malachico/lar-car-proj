@@ -5,6 +5,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/CompressedImage.h>
+#include <stereo_package/Map.h>
 #include <cv_bridge/cv_bridge.h>
 #include <boost/thread/thread.hpp>
 #include <std_msgs/Char.h>
@@ -12,13 +13,16 @@
 #include <cmath>
 #include "stereo.h"
 #include "heightmap.h"
+#include "helpermath.h"
 
 using namespace cv;
 
 /**
  * Frequency of doing stereo reconstruction and publishing height map
  */
-const int MAPPING_FREQUENCY = 10; //Hz
+const int MAPPING_FREQUENCY = 15; //Hz
+
+ros::Publisher pubMap;
 
 /**
  * Flags for existence of required components
@@ -135,12 +139,66 @@ void StereoThread()
  */
 void ROSThread()
 {
-  
-  
+  while(1)
+  {
+    boost::this_thread::sleep(boost::posix_time::milliseconds(1000/MAPPING_FREQUENCY)); 
+    
+    inputData.lock();
+      if(!receivedLoc)
+      {
+	inputData.unlock();
+	continue;
+      }
+      Quaternion myQuat = GetFromRPY(rot);
+      Vec3D position = pos;
+    inputData.unlock();
+    
+    
+    stereo_package::Map msg;
+    static int seq = 0;
+    msg.header.seq = seq++;
+    msg.header.stamp.sec = ros::Time::now().sec;
+    msg.header.stamp.nsec = ros::Time::now().nsec;
+    msg.header.frame_id = "map";
+    
+    msg.info.map_load_time.sec = ros::Time::now().sec;
+    msg.info.map_load_time.nsec = ros::Time::now().nsec;
+    msg.info.width = 150;
+    msg.info.height = 150;
+    msg.info.resolution = 0.2;
+    msg.info.origin.position.x = position.x;
+    msg.info.origin.position.y = position.y;
+    msg.info.origin.position.z = position.z;
+    msg.info.origin.orientation.x = myQuat.x;
+    msg.info.origin.orientation.y = myQuat.y;
+    msg.info.origin.orientation.z = myQuat.z;
+    msg.info.origin.orientation.w = myQuat.w;
+    msg.data.resize(150*150);
+    
+    gateway.lock();
+      if(!mapReady)
+      {
+	gateway.unlock();
+	continue;
+      }
+      HeightMap Oded = Map->deriveMap(position.x, position.y, rot);
+      vector<double>& heights = Oded.getHeights();
+      //vector<int>& types = Oded.getTypes();
+      //vector<int>& features = Oded.getFeatures();
+      for(int i = 0; i < 150; i++)
+	for(int j = 0; j < 150; j++)
+	{
+	  msg.data[j*150+i].height = heights[j*150+i];
+	  //msg.data[j*150+i].type = types[j*150+i];
+	  //msg.data[j*150+i].feature = features[j*150+i];
+	}
+    gateway.unlock();
+    pubMap.publish(msg);
+  }
 }
 
 /**
- * Projects the disparity map onto a height map and publishes the map.
+ * Projects the disparity map onto a height map.
  */
 void MappingThread()
 {
@@ -165,8 +223,8 @@ void MappingThread()
     disparity.unlock();
     
     gateway.lock();
-    mapReady = true;
     ProjectDepthImage(Map, _stereo, _right, _front, _up, _pos);
+    mapReady = true;
     gateway.unlock();
     
   }
@@ -182,6 +240,11 @@ void VisualThread()
     boost::this_thread::sleep(boost::posix_time::milliseconds(1000/MAPPING_FREQUENCY));
     
     inputData.lock();
+    if(!receivedLoc)
+    {
+      inputData.unlock();
+      continue;
+    }
     Vec3D _pos = pos;
     Rotation _rot = rot;
     inputData.unlock();
@@ -203,11 +266,7 @@ int main(int argc,char** argv)
 {
   Map = new HeightMap(400, 400);
   Map->setBlendFunc(HeightMap::maxHeightFilter);
-  //cv::FileStorage fs; // reading a Q matrix that tell us the stereo calibration
-  //bool opened = fs.open("Q.xml", FileStorage::READ);
-  //system("pwd");
-  //if(!opened) printf("Failed to open Q.xml\n");
-  //fs["Q"] >> Q;
+  
   ros::init(argc, argv, "stereo_package");
   namedWindow("stereo", 1);
   setMouseCallback("stereo", MouseCallBack, NULL);
@@ -215,6 +274,7 @@ int main(int argc,char** argv)
   ros::Subscriber camL = n.subscribe("SENSORS/CAM/L/compressed", 10, handleCamCompressed_L);
   ros::Subscriber camR = n.subscribe("SENSORS/CAM/R/compressed", 10, handleCamCompressed_R);
   ros::Subscriber loc = n.subscribe("LOC/Pose", 10, handleLocalization);
+  pubMap = n.advertise<stereo_package::Map>("PER/Map", 10);
   
   boost::thread t1(StereoThread);
   boost::thread t2(MappingThread);
