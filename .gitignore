@@ -10,6 +10,7 @@ test_results/
 CTestTestfile.cmake
 CMakeCache.txt
 cmake_install.cmake
+*.pyc
 *~
 
 
