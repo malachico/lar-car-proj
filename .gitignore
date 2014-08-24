@@ -1,0 +1,15 @@
+*build*
+*devel*
+*CMakeFiles*
+*catkin_generated*
+*catkin*
+.cproject
+.project
+Makefile
+test_results/
+CTestTestfile.cmake
+CMakeCache.txt
+cmake_install.cmake
+*~
+
+
