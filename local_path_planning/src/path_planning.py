@@ -57,7 +57,7 @@ def getWP(a,b,loc):
   
 def run_path_planner():
   im = image.resize((40,25)).convert('1').filter(ImageFilter.MedianFilter(3)).filter(ImageFilter.MedianFilter(5)).point(lambda p: p> 0 and 255)
-  im.show()
+  #im.show()
   pixels = list(im.getdata())
   autopoint = find_position(pixels)
   WP = getWP(autopoint[0],autopoint[1],loc)

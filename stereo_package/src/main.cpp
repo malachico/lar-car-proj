@@ -20,7 +20,7 @@ using namespace cv;
 /**
  * Frequency of doing stereo reconstruction and publishing height map
  */
-const int MAPPING_FREQUENCY = 15; //Hz
+const int MAPPING_FREQUENCY = 10; //Hz
 
 ros::Publisher pubMap;
 
@@ -226,7 +226,6 @@ void MappingThread()
     ProjectDepthImage(Map, _stereo, _right, _front, _up, _pos);
     mapReady = true;
     gateway.unlock();
-    
   }
 }
 
@@ -279,6 +278,7 @@ int main(int argc,char** argv)
   boost::thread t1(StereoThread);
   boost::thread t2(MappingThread);
   boost::thread t3(VisualThread);
+  boost::thread t4(ROSThread);
   
   
   ros::AsyncSpinner spinner(4); // Use 4 threads
