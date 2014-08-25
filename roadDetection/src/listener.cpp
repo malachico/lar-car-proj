@@ -1,6 +1,9 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
-#include "sensor_msgs/Image.h"
+#include <sensor_msgs/CompressedImage.h>
+#include "std_msgs/Float64MultiArray.h"
+#include "roadDetection/roadLanes.h"
+#include "roadDetection/lane.h"
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include "displayImage/DisplayImage.h"
@@ -12,75 +15,49 @@ using namespace cv;
 using namespace std;
 
 /** *
- * 		get_distance:
- ** */
-#define FOV 		1.3963
-#define CAM_HEIGHT 	1.97
-#define WIDTH 		4872
-#define LENGTH		1224
-void get_distance(int picX, int picY)
-{
-  float xDist, yDist;
-  float alpha = (M_PI-FOV)/2.0;
-  float closest = CAM_HEIGHT*(tan(alpha));
-  float beta = (picY / (LENGTH/2.0))*( FOV/2 );
-  if(picX==0)
-    xDist = 1000;
-  else
-    xDist = (WIDTH/2)*(closest/picX);
-  yDist = xDist*(tan(beta));
-  
-  printf("(xDist: %f, yDist: %f)\n", xDist, yDist);
-}
-
-/** *
  * 		displayImage:
  ** */
-void displayImage(const sensor_msgs::Image msg)
+ros::NodeHandle *n;
+ros::Publisher chatter_pub ;
+
+void displayImage(const sensor_msgs::CompressedImage& msg)
 {
-  //*
-  int rows = msg.height;
-  int colsMul3 = msg.step;
+  Mat m = imdecode(Mat(msg.data),1);
+ 
+  std::vector<double> lanes;
   
-  Mat m = Mat(rows, colsMul3/3, CV_8UC3);
+  lanes = detectRoad(m, 50, 100);
+ 
+  roadDetection::roadLanes retMsg;
   
-  for(int i=0; i< rows; i++)
+  retMsg.header.stamp = ros::Time::now();
+  retMsg.header.frame_id = "Road Detection\n";
+  
+  int size = lanes.size()/5;
+  retMsg.lanes.resize(size);
+  
+  for(int i=0; i<size; i++)
   {
-    for(int j=0; j< colsMul3/3; j++)
-    {
-      m.at<Vec3b>(i,j)[2] = msg.data[i*colsMul3 + j*3 + 0];
-      m.at<Vec3b>(i,j)[1] = msg.data[i*colsMul3 + j*3 + 1];
-      m.at<Vec3b>(i,j)[0] = msg.data[i*colsMul3 + j*3 + 2];
-    }
+    retMsg.lanes[i].highPix 	= lanes[i*5 + 0];
+    retMsg.lanes[i].lowPix 	= lanes[i*5 + 1];
+    retMsg.lanes[i].x2 	= lanes[i*5 + 2];
+    retMsg.lanes[i].x1 	= lanes[i*5 + 3];
+    retMsg.lanes[i].x0 	= lanes[i*5 + 4];
   }
-  //*/
-  /*
   
-  Mat m = imread("image.jpg");
-  if(m.empty())
-  {
-    printf("returning\n");
-    return;
-  }
-  else
-  {
-    printf("here\n");
-  }
-  //*/
-  detectRoad(m, 50, 100);
-  
+  chatter_pub.publish(retMsg);
 }
 
 /** *
  * 		chatterCallback:
  ** */
+  
 int counter = 0;
 int everyNthTime = 10;
 
-void chatterCallback(const sensor_msgs::Image msg)
+void chatterCallback(const sensor_msgs::CompressedImage& msg)
 {
   if(counter%everyNthTime == 0)
-//   if(counter == 0)
   {
     displayImage(msg);
     counter = 1;
@@ -100,11 +77,13 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "listener");
 
-  ros::NodeHandle n;
-
-  ros::Subscriber sub = n.subscribe("SENSORS/CAM/L", 1000, chatterCallback);
-//   printf("spin\n");
-  ros::spin();
-
+  ros::NodeHandle n1;
+  n = &n1;
+  ros::Subscriber sub = n->subscribe("SENSORS/CAM/L/compressed", 1000, chatterCallback);
+  chatter_pub = n->advertise<roadDetection::roadLanes>("RoadLanes",1000);
+  ros::AsyncSpinner spinner(1); // Use 1 threads
+  spinner.start();
+  ros::waitForShutdown();
+  
   return 0;
 }
