@@ -1,15 +1,17 @@
+// FLEA 3 ROS 		By:Roman Kudinov
 
-
-//#include "stdafx.h"
+//
 
 #include "FlyCapture2.h"
 #include <ros/ros.h>
 #include <ros/spinner.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/CompressedImage.h>
 #include <cv_bridge/cv_bridge.h>
 #include <boost/thread/thread.hpp>
 #include <opencv2/opencv.hpp>
+#include <cv_bridge/cv_bridge.h>
 
 
 using namespace FlyCapture2;
@@ -17,7 +19,46 @@ using namespace FlyCapture2;
 
 ros::Publisher publishers[10];
 
-
+sensor_msgs::CompressedImage CompressMsg(sensor_msgs::Image& message)
+{
+  sensor_msgs::CompressedImage compressed;
+  compressed.header = message.header;
+  compressed.format = message.encoding;
+  compressed.format += "; png compressed";
+ 
+  cv_bridge::CvImagePtr cv_ptr;
+  try
+  {
+    cv_ptr = cv_bridge::toCvCopy(message, "rgb8");
+    // Compress image
+    std::vector<int> params;
+    params.resize(3, 0);
+    params[0] = CV_IMWRITE_PNG_COMPRESSION;
+    params[1] = 2;
+    if (cv::imencode(".png", cv_ptr->image, compressed.data, params))
+    {
+      //float cRatio = (float)(cv_ptr->image.rows * cv_ptr->image.cols * cv_ptr->image.elemSize())
+      /// (float)compressed.data.size();
+      //ROS_DEBUG("Compressed Image Transport - Codec: png, Compression: 1:%.2f (%lu bytes)", cRatio, compressed.data.size());
+    }
+    else
+    {
+      ROS_ERROR("cv::imencode (png) failed on input image");
+    }
+  }
+  catch (cv_bridge::Exception& e)
+  {
+    ROS_ERROR("%s", e.what());
+  }
+  catch (cv::Exception& e)
+  {
+  ROS_ERROR("%s", e.what());
+  }
+  
+  //int bitDepth = enc::bitDepth(message.encoding);
+  //int numChannels = enc::numChannels(message.encoding);
+  return compressed;
+}
 
 void PrintError( Error error )
 {
@@ -107,7 +148,6 @@ int RunSingleCamera(PGRGuid guid, int id)
     }
 
     Image rawImage;  
-  //  Image convertedImage;
     int seq = 0;
     while(1)
     {              
@@ -119,7 +159,6 @@ int RunSingleCamera(PGRGuid guid, int id)
             continue;
         }
 	sensor_msgs::Image msg;
-	
 	msg.header.seq = seq;
 	msg.header.frame_id = "1";
 	msg.header.stamp = ros::Time::now();
@@ -129,7 +168,7 @@ int RunSingleCamera(PGRGuid guid, int id)
 	msg.is_bigendian = 0;
 	msg.step = rawImage.GetStride();
 	msg.data = std::vector<unsigned char>(rawImage.GetData(),rawImage.GetData()+rawImage.GetDataSize());
-	publishers[id].publish(msg);
+	publishers[id].publish(msg);//CompressMsg(msg));
         seq++;
     }         
 
@@ -178,12 +217,9 @@ int main(int argc, char** argv)
         PrintError( error );
         return -1;
     }
-
-    
-    
     for (unsigned int i=0; i < numCameras; i++)
     {
-	char topicName[50];
+	char topicName[90];
 	sprintf(topicName, "SENSORS/FLEA3/%d", i);
 	publishers[i] = n.advertise<sensor_msgs::Image>(topicName, 10);
         
