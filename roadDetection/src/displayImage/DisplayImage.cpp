@@ -332,10 +332,11 @@ void findLimits(Mat *m4, vector<Point> *LR, vector<Point> *LL, vector<vector<Poi
 /** *******************************
  *  detectRoad:
  ** *******************************/
-int detectRoad(Mat image, int cut_p, int down_p) 
+vector<double> detectRoad(Mat image, int cut_p, int down_p) 
 {
+  vector<double> result;
   if(!image.data )
-  {    printf( "No image data \n" );     return -1; }
+  {    printf( "No image data \n" );     return result; }
   
   ///calculate the probability of grayscale Gi to show at the image
   
@@ -390,7 +391,7 @@ int detectRoad(Mat image, int cut_p, int down_p)
   entropyImage = Erosion(entropyImage, factor);
   factor = 4;
   entropyImage = Dilation(entropyImage, factor);
-  imshow("ely", entropyImage);
+//   imshow("ely", entropyImage);
   
 /// finding clusters:
   vector<vector<Point> > contours;
@@ -424,15 +425,14 @@ int detectRoad(Mat image, int cut_p, int down_p)
     {
       selected_contours.push_back(contours[k]);
       selected_contour = k;
-      /// to remove:
-       drawContours(image, contours, k, Scalar(0,0,0), 2, 8);
+      /// to remove [debug purposes]:
+//        drawContours(image, contours, k, Scalar(0,0,0), 2, 8);
     }
     
   }
   
   int towrite = 0;
   int s = selected_contours.size();
-
   
   for(int i=0; i<s; i++)
   {    
@@ -443,10 +443,10 @@ int detectRoad(Mat image, int cut_p, int down_p)
     
     double a[3];
     polyfit(a, limitsL, limitsL.size()-10);
-    printf("left edge: %f x^2 + %f x + %f\n", a[2], a[1], a[0]);
+//     printf("left edge: %f x^2 + %f x + %f\n", a[2], a[1], a[0]);
     double b[3];
     polyfit(b, limitsR, limitsR.size()-10);
-    printf("right edge: %f x^2 + %f x + %f\n\n", b[2], b[1], b[0]);
+//     printf("right edge: %f x^2 + %f x + %f\n\n", b[2], b[1], b[0]);
     
     vector< double*> Cs;
     for(int j=0; j<lanes.size(); j++)
@@ -456,8 +456,61 @@ int detectRoad(Mat image, int cut_p, int down_p)
       Cs.push_back(c);
 //       printf("first lane: %f x^2 + %f x + %f\n\n", c[2], c[1], c[0]);
     }
-        
-    //* debug purposes:
+    
+    if(a[0] == a[0] && a[1] == a[1] && a[2] == a[2])
+    {
+      result.push_back(limitsL[0].y);
+      result.push_back(limitsL[limitsL.size()-1].y);
+      result.push_back(a[2]);
+      result.push_back(a[1]);
+      result.push_back(a[0]);
+    }
+    else
+    {
+      result.push_back(0);
+      result.push_back(0);      
+      result.push_back(0);
+      result.push_back(0);
+      result.push_back(0);
+    }
+    
+    for(int j=0; j<Cs.size();j++)
+    {
+      if(Cs[j][0] == Cs[j][0] && Cs[j][1] == Cs[j][1] && Cs[j][2] == Cs[j][2])
+      {
+	result.push_back(lanes[j][0].y);
+	result.push_back(lanes[j][lanes[j].size()-1].y);
+	result.push_back(Cs[j][2]);
+	result.push_back(Cs[j][1]);
+	result.push_back(Cs[j][0]);
+      }
+      else
+      {
+	result.push_back(0);
+	result.push_back(0);
+	result.push_back(0);
+	result.push_back(0);
+	result.push_back(0);
+      } 
+    }
+    
+    if(b[0] == b[0] && b[1] == b[1] && b[2] == b[2])
+    {
+      result.push_back(limitsR[0].y);
+      result.push_back(limitsR[limitsR.size()-1].y);
+      result.push_back(b[2]);
+      result.push_back(b[1]);
+      result.push_back(b[0]);
+    }
+    else
+    {
+      result.push_back(0);
+      result.push_back(0);      
+      result.push_back(0);
+      result.push_back(0);
+      result.push_back(0);
+    }
+    /* debug purposes:
     for(int j=0; j<limitsL.size()-2; j++)
     {
       int x = limitsL[j].y;
@@ -477,7 +530,7 @@ int detectRoad(Mat image, int cut_p, int down_p)
     //printf("lanes size: %d\n", lanes.size());
     for(int j=0; j<lanes.size(); j++)
     {
-      for(int k=0; k<lanes[j].size()-2; k++)
+      for(int result.push_back(limitsL[0].y);k=0; k<lanes[j].size()-2; k++)
       {
 	int x = lanes[j][k].y;
 	double y = Cs[j][0] + Cs[j][1]*x*1.0 + Cs[j][2]*x*x*1.0;
@@ -489,10 +542,11 @@ int detectRoad(Mat image, int cut_p, int down_p)
     //*/
   }
   
-  imshow("walrus", image);
-  waitKey(0);
+//   imshow("walrus", image);
+//   waitKey(1);
   
-  return 0;
+    
+  return result;
 }
 
 
