@@ -40,6 +40,7 @@ class joystick_control():
         
     def get_all(self):
         return [self.buttons, self.axes]
+    
     def test_joystick(self):
         print "number of joysticks: ", pygame.joystick.get_count()
         print "number of axes: ", self._numofaxes
