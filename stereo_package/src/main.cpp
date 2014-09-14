@@ -8,6 +8,8 @@
 #include <stereo_package/Map.h>
 #include <cv_bridge/cv_bridge.h>
 #include <boost/thread/thread.hpp>
+#include <roadDetection/roadLanes.h>
+#include <roadDetection/lane.h>
 #include <std_msgs/Char.h>
 #include <opencv2/opencv.hpp>
 #include <cmath>
@@ -16,11 +18,15 @@
 #include "helpermath.h"
 
 using namespace cv;
+using std::vector;
+using namespace roadDetection;
+
+
 
 /**
  * Frequency of doing stereo reconstruction and publishing height map
  */
-const int MAPPING_FREQUENCY = 10; //Hz
+const int MAPPING_FREQUENCY = 15; //Hz
 
 ros::Publisher pubMap;
 
@@ -32,6 +38,7 @@ bool camL = false;
 bool receivedLoc = false;
 bool disparityReady = false;
 bool mapReady = false;
+bool lanesReady = false;
 
 /**
  * Synchronization mechanisms
@@ -48,6 +55,7 @@ Vec3D pos, front, up, right; 		//derived from localization (input)
 Rotation rot;				//derived from localization (input)
 HeightMap*  Map;    			//main height map
 Mat stereo;				//disparity map
+vector<lane> lanes;			//road lane data
 
 
 /**
@@ -83,6 +91,15 @@ Mat stereo;				//disparity map
     camR = true;
     inputData.unlock();
   } 
+  
+  void handleWalrusData(const roadDetection::roadLanes& msg)
+  {
+    inputData.lock();
+    lanes = msg.lanes;
+    lanesReady = true;
+    inputData.unlock();
+  }
+   
 /**
  */    
     
@@ -211,6 +228,7 @@ void MappingThread()
     Vec3D _front = front;
     Vec3D _up = up;
     Vec3D _pos = pos;
+    vector<lane> _lanes = lanes;
     inputData.unlock();
     
     disparity.lock();
@@ -223,7 +241,8 @@ void MappingThread()
     disparity.unlock();
     
     gateway.lock();
-    ProjectDepthImage(Map, _stereo, _right, _front, _up, _pos);
+    ProjectDepthImage(Map, _stereo, _right, _front, _up, _pos, _lanes);
+    lanes.clear();
     mapReady = true;
     gateway.unlock();
   }
@@ -268,11 +287,12 @@ int main(int argc,char** argv)
   
   ros::init(argc, argv, "stereo_package");
   namedWindow("stereo", 1);
-  setMouseCallback("stereo", MouseCallBack, NULL);
+  //setMouseCallback("stereo", MouseCallBack, NULL);
   ros::NodeHandle n;
   ros::Subscriber camL = n.subscribe("SENSORS/CAM/L/compressed", 10, handleCamCompressed_L);
   ros::Subscriber camR = n.subscribe("SENSORS/CAM/R/compressed", 10, handleCamCompressed_R);
   ros::Subscriber loc = n.subscribe("LOC/Pose", 10, handleLocalization);
+  ros::Subscriber wlrs = n.subscribe("RoadLanes", 10, handleWalrusData);
   pubMap = n.advertise<stereo_package::Map>("PER/Map", 10);
   
   boost::thread t1(StereoThread);

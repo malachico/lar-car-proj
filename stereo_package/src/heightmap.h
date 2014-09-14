@@ -12,6 +12,7 @@ using std::vector;
     Designed according to specs.
 */
 
+#define HEIGHT_UNKNOWN -100.0
 #define TYPE_UNSCANNED 0
 #define TYPE_CLEAR 1
 #define TYPE_OBSTACLE 2
@@ -52,6 +53,9 @@ class HeightMap
 	
 	void    setRelativeFeatureAt(int x, int y, int feature);
         int     getRelativeFeatureAt(int x, int y);
+	
+	void    setAbsoluteFeatureAt(int x, int y, int feature);
+        int     getAbsoluteFeatureAt(int x, int y);
         
 	/**
 	 * This function attempts to (for now) classify each map cell as

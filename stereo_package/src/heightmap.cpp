@@ -3,8 +3,6 @@
 
 using namespace cv;
 
-#define HEIGHT_UNKNOWN -100.0
-
 HeightMap::HeightMap(int width, int height)
 {
     _heights.resize(width*height, HEIGHT_UNKNOWN);
@@ -96,6 +94,13 @@ void HeightMap::setAbsoluteHeightAt(int x, int y, double height)
     setRelativeHeightAt(x,y,height);
 }
 
+void HeightMap::setAbsoluteFeatureAt(int x, int y, int feature)
+{
+    x -= _refPoint.x;
+    y -= _refPoint.y;
+    setRelativeFeatureAt(x,y,feature);
+}
+
 void HeightMap::shiftLeft()
 {
   _refPoint = _refPoint.add(Vec2D(-_width/2, 0));
@@ -184,6 +189,13 @@ double HeightMap::getAbsoluteHeightAt(int x, int y)
   return getRelativeHeightAt(x,y);
 }
 
+int HeightMap::getAbsoluteFeatureAt(int x, int y)
+{
+  x -= _refPoint.x;
+  y -= _refPoint.y;
+  return getRelativeFeatureAt(x,y);
+}
+
 int HeightMap::getRelativeTypeAt(int x, int y)
 {
   if(x >= _width/2 || x <= -_width/2) return TYPE_UNSCANNED;
@@ -229,7 +241,8 @@ void HeightMap::displayGUI(int rotation, int px, int py, int enlarger)
                 continue;
             }
             double c = (h - _min)/(_max-_min);
-            image.at<Vec3b>(x,y) = Vec3b(120*(1-c),240, 240);
+	    if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_ROAD) image.at<Vec3b>(x,y) = Vec3b(10,240, 240);
+            else image.at<Vec3b>(x,y) = Vec3b(120*(1-c),240, 240);
         }
     cvtColor(image, image, CV_HSV2BGR);
     //put the tempory arrow representing my position and rotation on the map
