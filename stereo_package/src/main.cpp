@@ -8,8 +8,8 @@
 #include <stereo_package/Map.h>
 #include <cv_bridge/cv_bridge.h>
 #include <boost/thread/thread.hpp>
-#include <roadDetection/roadLanes.h>
-#include <roadDetection/lane.h>
+#include <road_detection/roadLanes.h>
+#include <road_detection/lane.h>
 #include <std_msgs/Char.h>
 #include <opencv2/opencv.hpp>
 #include <cmath>
@@ -19,7 +19,7 @@
 
 using namespace cv;
 using std::vector;
-using namespace roadDetection;
+using namespace road_detection;
 
 
 
@@ -92,7 +92,7 @@ vector<lane> lanes;			//road lane data
     inputData.unlock();
   } 
   
-  void handleWalrusData(const roadDetection::roadLanes& msg)
+  void handleWalrusData(const road_detection::roadLanes& msg)
   {
     inputData.lock();
     lanes = msg.lanes;

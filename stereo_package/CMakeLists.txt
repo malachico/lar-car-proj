@@ -55,3 +55,7 @@ add_executable(stereo_package src/main.cpp src/helpermath.cpp src/heightmap.cpp 
 target_link_libraries(stereo_package ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${OpenCV_LIBS} ${GAZEBO_libraries} 
 )
 link_directories(${GAZEBO_LIBRARY_DIRS})
+install(
+  DIRECTORY pics/
+  DESTINATION $ENV{HOME}/.ros
+)

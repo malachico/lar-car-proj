@@ -6,7 +6,7 @@
 #define PI 3.14159
 
 using namespace cv;
-using roadDetection::lane;
+using road_detection::lane;
 
 static bool AUTO_CORRECT_MAP = false;
 
