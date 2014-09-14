@@ -7,7 +7,7 @@ import gtk,webkit
 import menu
 import os
 from std_msgs.msg import Float64
-
+from way_map import MapViewer
 
 class gtk_object:
   def __init__(self,obj,init_condition=False):
@@ -32,8 +32,9 @@ class gtk_object:
 class car_gui:
   
   
-  def hello_button(self,widget):
-    print "hello world"
+  def hello_button(self,widget,data):
+    print "hello world",data
+    print widget.get_active()#print dir(widget)
    
   def __init__(self,SIZE):
     ##### Main window ###
@@ -90,14 +91,27 @@ class car_gui:
     ##### #############
     self.right_box = gtk.VBox()
     self.mainbox.pack_start(self.right_box)
+    #### Visual box
+    self.visbox = gtk.HBox()
+    self.right_box.pack_start(self.visbox,False)
     #### Image stuff
     self.imgbox = gtk.HBox() #image box
-    self.right_box.pack_start(self.imgbox,False)
+    vbox = gtk.VBox(True, 2)
+    self.lef_im_but = gtk.CheckButton("L")
+    self.rit_im_but = gtk.CheckButton("R")
+    self.lef_im_but.connect("toggled", self.change_image, "L")
+    self.rit_im_but.connect("toggled", self.change_image, "R")
+    vbox.pack_start(self.lef_im_but)
+    vbox.pack_start(self.rit_im_but)
+    self.imgbox.pack_start(vbox)
+    self.visbox.pack_start(self.imgbox,False)
     self.imageR = gtk.Image()#define image
     self.imageL = gtk.Image()#define image
     self.imgbox.pack_start(self.imageR)
     self.imgbox.pack_start(self.imageL)
-    self.imgbox.set_size_request(800,300)
+    self.imgbox.set_size_request(250,100)
+    #### Map View
+    self.way_map = MapViewer(self.visbox,150)
     #### Web stuff
     self.web_box = gtk_object(gtk.VBox(),True)
     self.right_box.pack_start(self.web_box.obj)
@@ -124,7 +138,9 @@ class car_gui:
     
     # ROS object
     self.ros = ROS(self)
-    
+  def change_image(self,widget,data):
+    self.ros.cam_vis[data] = widget.get_active()
+  
   def init_system(self):
     self.mainbox.show()
     self.win.show_all()

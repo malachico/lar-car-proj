@@ -13,6 +13,7 @@ def add_all_menu_items(me):
   me.menu.add_item(("/Packages/Localization",         None, run_subprocess,1,None))
   me.menu.add_item(("/Packages/Local path planning",  None, run_subprocess,2,None))
   me.menu.add_item(("/Packages/Low level control",    None, run_subprocess,3,None))
+  me.menu.add_item(("/Packages/Stereo Package",    None, run_subprocess,6,None))
   me.menu.add_item(("/Packages/sep1",                 None, None,0,"<Separator>"))
   me.menu.add_item(("/Packages/Run all packages",     "<control>A", run_subprocess,4,None))
   
@@ -35,6 +36,8 @@ def run_subprocess(widget,data=None):
     st = os.path.dirname(os.path.realpath(__file__)) + '/../../scripts/run_all.sh'
   elif widget == 5:
     st = os.path.dirname(os.path.realpath(__file__)) + '/../../scripts/google_map_server.sh'  
+  elif widget == 6:
+    st = os.path.dirname(os.path.realpath(__file__)) + '/../../scripts/stereo_package.sh'  
   subprocess.call([st])
 
 class myMenu:
