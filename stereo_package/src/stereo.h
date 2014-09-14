@@ -6,6 +6,9 @@
 #define PI 3.14159
 
 using namespace cv;
+using roadDetection::lane;
+
+static bool AUTO_CORRECT_MAP = false;
 
 Mat getDisparity(Mat left_image, Mat right_image)
 {
@@ -75,27 +78,55 @@ void ComputeFOVProjection(Mat& result, float fov, float aspect, float zNear, flo
     result.at<float>(3,3) = 0;
 }
 
-void ProjectDepthImage(HeightMap* map, Mat img, Vec3D myRight, Vec3D myFront, Vec3D myUp, Vec3D myPos)
+void ProjectDepthImage(HeightMap* map, Mat img, Vec3D myRight, Vec3D myFront, Vec3D myUp, Vec3D myPos, vector<lane> lanes)
 {
   static const double fov = 0.6981317; //45 deg to each side
   double min=100, max=-100;
+  double sin_fov = sin(fov);
+  double tan_fov = tan(fov);
   
   for(int i = img.rows-1; i >= 0; i--)
   {
     for(int j = 0; j < img.cols; j++)
     {
+      bool tmp_road = false;
+      for(vector<lane>::iterator it = lanes.begin(); it != lanes.end() && !tmp_road; it++)
+      {
+	lane l = *it;
+	if((int)(l.x2*j*j + l.x1*j + l.x0) == i) tmp_road = true; 
+      }
       uchar depth = img.at<uchar>(i, j);
       if(depth < 40 || depth > 150) continue;
       float depth_m = pow(float(depth)/753.42, -1.0661);
       //depth_m = pow(depth, 0.5);
-      float right_m = depth_m * sin(fov) * 2*(-j + img.cols/2)/img.cols;
-      float up_m = depth_m * sin(fov) * 2*(-i + img.rows/2)/img.rows;
+      float right_m = depth_m * sin_fov * 2*(-j + img.cols/2)/img.cols;
+      float up_m = depth_m * sin_fov * 2*(-i + img.rows/2)/img.rows;
       Vec3D pos = myPos.add(myFront.multiply(depth_m).add(myRight.multiply(right_m).add(myUp.multiply(up_m))));
       map->setAbsoluteHeightAt((int)(5*pos.x), (int)(5*pos.y), (pos.z));
+      if(tmp_road) map->setAbsoluteFeatureAt((int)(5*pos.x), (int)(5*pos.y), FEATURE_ROAD);
       if(pos.z > max) max = pos.z;
       if(pos.z < min) min = pos.z;
     }
   }
+  /**
+   * Gazebo road is never detected in stereo, so this fix states the following:
+   * -If there is nothing here (0 pixel value), it is fully drivable terrain.
+   */
+  if(AUTO_CORRECT_MAP)
+  {
+    for(double f = 1; f < 20; f+=0.2)
+    {
+      for(double r = -f*tan_fov; r < f*tan_fov; r += 0.2)
+      {
+	Vec3D pos = myPos.add(myFront.multiply(f).add(myRight.multiply(r)));
+	if(map->getAbsoluteHeightAt((int)(5*pos.x), (int)(5*pos.y)) == HEIGHT_UNKNOWN)
+	  map->setAbsoluteHeightAt((int)(5*pos.x), (int)(5*pos.y), -2);
+      }
+    }
+    
+  }
+  
+  
   printf("min: %f max: %f\n", min, max);
 }
 
