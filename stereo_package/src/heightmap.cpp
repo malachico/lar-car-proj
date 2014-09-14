@@ -1,5 +1,4 @@
 #include "heightmap.h"
-#include "rdbg.h"
 #include <cstdio>
 
 using namespace cv;
