@@ -244,7 +244,7 @@ void HeightMap::displayGUI(int rotation, int px, int py, int enlarger)
     if(px >= _width/2 || px <= -_width/2 || py >= _height/2 || py <= -_height/2) 
     {
       char name[30];
-      sprintf(name, "%f %d", _refPoint.x, py);
+      sprintf(name, "dm %f %d", _refPoint.x, py);
       imshow(name, image);
       //cv::waitKey(1);
       return;
@@ -257,7 +257,7 @@ void HeightMap::displayGUI(int rotation, int px, int py, int enlarger)
     
   
     char name[30];
-    sprintf(name, "GUI %d", _width);
+    sprintf(name, "dm GUI %d", _width);
     imshow(name, image);
    
 }

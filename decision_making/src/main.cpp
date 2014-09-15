@@ -18,6 +18,7 @@
 
 using namespace cv;
 using std::vector;
+using stereo_package::MapCell;
 // using namespace roadDetection;
 
 
@@ -55,6 +56,8 @@ Rotation rot;				//derived from localization (input)
 HeightMap*  Map;    			//main height map
 // Mat stereo;				//disparity map
 // vector<lane> lanes;			//road lane data
+
+
 void VisualThread()
 {
   while(1)
@@ -87,10 +90,47 @@ void VisualThread()
 /**
  * Input Message Handlers
  */
-  void handleMap(const stereo_package::Map& msg)
+void handleMap(const stereo_package::Map& msg)
+{
+  geometry_msgs::Pose pose = msg.info.origin;
+  inputData.lock();
+  pos = Vec3D(pose.position.x, pose.position.y, pose.position.z);
+  Quaternion myQuat = Quaternion(pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w);
+  rot = GetRotation(myQuat);
+  receivedLoc = true;
+  inputData.unlock();
+  
+  vector<MapCell> data = msg.data;
+  gateway.lock();
+  bool isReady = mapReady;
+  if(!isReady)
   {
-    printf("here\n");
+    //acquire the info and create the map only once
+    nav_msgs::MapMetaData info = msg.info;
+    Map = new HeightMap(info.width, info.height);
+    vector<double>& heights = Map->getHeights();
+    for(int i = 0; i < 150; i++)
+	for(int j = 0; j < 150; j++)
+	{
+	  heights[j*150+i] = msg.data[j*150+i].height;
+	  //msg.data[j*150+i].type = types[j*150+i];
+	  //msg.data[j*150+i].feature = features[j*150+i];
+	}
   }
+  else
+  {
+    vector<double>& heights = Map->getHeights();
+    for(int i = 0; i < 150; i++)
+	for(int j = 0; j < 150; j++)
+	{
+	  heights[j*150+i] = msg.data[j*150+i].height;
+	  //msg.data[j*150+i].type = types[j*150+i];
+	  //msg.data[j*150+i].feature = features[j*150+i];
+	}
+  }
+  mapReady = true;
+  gateway.unlock();
+}
 
 int main(int argc,char** argv)
 {
