@@ -3,8 +3,8 @@
 #include <sensor_msgs/CompressedImage.h>
 // #include <sensor_msgs/Image.h>
 #include "std_msgs/Float64MultiArray.h"
-#include "roadDetection/roadLanes.h"
-#include "roadDetection/lane.h"
+#include "road_detection/roadLanes.h"
+#include "road_detection/lane.h"
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include "displayImage/DisplayImage.h"
