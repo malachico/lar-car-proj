@@ -14,8 +14,12 @@ HeightMap::HeightMap(int width, int height)
     _height = height;
     _min = -10;
     _max = 10;
-    _compass = imread("compass.png");
-    _arrow = imread("arrow.png");
+    char compassss[100],arrowww[100];
+    sprintf(compassss,"%s/.ros/compass.png",getenv("HOME"));
+    sprintf(arrowww,"%s/.ros/arrow.png",getenv("HOME"));
+    
+    _compass = imread(compassss);
+    _arrow = imread(arrowww);
     _refPoint = Vec2D(0,0);
     _blendFunc = &lowPassFilter;
 }
