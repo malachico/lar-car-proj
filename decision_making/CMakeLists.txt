@@ -17,14 +17,6 @@ find_package(gazebo REQUIRED)
 
 
 
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  nav_msgs
-  )
-
-
 catkin_package(
 	CATKIN_DEPENDS
 # 	    robil2conf
@@ -46,7 +38,7 @@ include_directories(
 ## Declare a cpp library
 
 link_directories(${GAZEBO_LIBRARY_DIRS})
-add_executable(decision_making src/main.cpp src/helpermath.cpp src/heightmap.cpp )
+add_executable(decision_making src/main.cpp src/helpermath.cpp src/heightmap.cpp src/SimpleGUI.cpp)
 target_link_libraries(decision_making ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${OpenCV_LIBS} ${GAZEBO_libraries} 
 )
 link_directories(${GAZEBO_LIBRARY_DIRS})

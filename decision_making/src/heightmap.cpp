@@ -219,6 +219,15 @@ void HeightMap::displayConsole()
 
 void HeightMap::displayGUI(int rotation, int px, int py, int enlarger)
 {
+    Mat image = buildGUI(rotation, px, py, enlarger);
+    char name[30];
+    sprintf(name, "dm GUI %d", _width);
+    imshow(name, image);
+   
+}
+
+Mat HeightMap::buildGUI(int rotation, int px, int py, int enlarger)
+{
    // rdbg("gui enter");
     Mat image(_width*enlarger, _height*enlarger, CV_8UC3);
     cvtColor(image, image, CV_BGR2HSV);
@@ -247,11 +256,11 @@ void HeightMap::displayGUI(int rotation, int px, int py, int enlarger)
     py -= _refPoint.y;
     if(px >= _width/2 || px <= -_width/2 || py >= _height/2 || py <= -_height/2) 
     {
-      char name[30];
-      sprintf(name, "dm %f %d", _refPoint.x, py);
-      imshow(name, image);
+      //char name[30];
+      //sprintf(name, "dm %f %d", _refPoint.x, py);
+      //imshow(name, image);
       //cv::waitKey(1);
-      return;
+      return image;
     }
     px = _width/2 - px;
     py = _height/2 - py;
@@ -260,10 +269,10 @@ void HeightMap::displayGUI(int rotation, int px, int py, int enlarger)
 	if(arrow.at<Vec3b>(i,j) != Vec3b(0,0,0)) image.at<Vec3b>(i+px*enlarger-arrow.rows/2, j+py*enlarger-arrow.cols/2) = arrow.at<Vec3b>(i, j);
     
   
-    char name[30];
-    sprintf(name, "dm GUI %d", _width);
-    imshow(name, image);
-   
+    //char name[30];
+    //sprintf(name, "dm GUI %d", _width);
+    //imshow(name, image);
+   return image;
 }
 
 void HeightMap::displayTypesGUI(int enlarger)

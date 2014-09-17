@@ -15,12 +15,13 @@
 #include <cmath>
 #include "heightmap.h"
 #include "helpermath.h"
+#include "SimpleGUI.h"
 
 using namespace cv;
 using std::vector;
 using stereo_package::MapCell;
 // using namespace roadDetection;
-
+using namespace SimpleGUI;
 
 
 /**
@@ -38,6 +39,7 @@ const int MAPPING_FREQUENCY = 15; //Hz
 bool receivedLoc = false;
 // bool disparityReady = false;
 bool mapReady = false;
+bool heightMapImgReady = false;
 // bool lanesReady = false;
 
 /**
@@ -56,7 +58,7 @@ Rotation rot;				//derived from localization (input)
 HeightMap*  Map;    			//main height map
 // Mat stereo;				//disparity map
 // vector<lane> lanes;			//road lane data
-
+Mat heightMapImg;
 
 void VisualThread()
 {
@@ -80,9 +82,10 @@ void VisualThread()
       gateway.unlock();
       continue;
     }
-    Map->displayGUI(_rot.yaw*180/3.14159,_pos.x,_pos.y, 1);
+    heightMapImg = Map->buildGUI(_rot.yaw*180/3.14159,_pos.x,_pos.y, 1);
+    heightMapImgReady = true;
     gateway.unlock();
-    waitKey(1);
+    //waitKey(1);
     //boost::this_thread::sleep(boost::posix_time::milliseconds(1000/MAPPING_FREQUENCY)); 
   }
 }
@@ -132,6 +135,81 @@ void handleMap(const stereo_package::Map& msg)
   gateway.unlock();
 }
 
+
+void Connect(ImageButton* button, int x, int y)
+{
+	printf("oded pressed connect\n");
+}
+
+void UIThread()
+{
+	Canvas* canvas = new Canvas(1024, 768, false);
+	canvas->setForegroundColor(Scalar(200,200,200));
+	/*
+	Mat m = imread("img.jpg", 1);
+	Mat btn1 = imread("btn1.bmp", 1);
+	Mat btn2 = imread("btn2.bmp", 1);
+	Mat btn3 = imread("btn3.bmp", 1);
+	*/
+	
+	
+	CString* location = new CString("Location", 10, 30, 15);
+	location->setColor(Scalar(0,0,0));
+	canvas->addObject(location);
+	
+	CString* wayPoint = new CString("Way Point", 10, 30, 120);
+	wayPoint->setColor(Scalar(0,0,0));
+	canvas->addObject(wayPoint);
+	
+	CString* pos_x = new CString("x: 0", 10, 60, 200); 
+	CString* pos_y = new CString("y: 0", 10, 60, 215); 
+	pos_x->setColor(Scalar(0,0,0));
+	canvas->addObject(pos_x);
+	pos_y->setColor(Scalar(0,0,0));
+	canvas->addObject(pos_y);
+	
+	CString* auto_manual = new CString("Auto/Manual", 10, 30, 300);
+	auto_manual->setColor(Scalar(0,0,0));
+	canvas->addObject(auto_manual);
+	
+	SimpleButton* manualAuto = new SimpleButton("Auto", 30, 315, 150, 200);
+	manualAuto->setColors(Scalar(60,60,60), Scalar(120,120,120), Scalar(0,0,0));
+	canvas->addObject(manualAuto);
+	
+	CString* connectstr = new CString("Connect", 10, 30, 520);
+	connectstr->setColor(Scalar(0,0,0));
+	canvas->addObject(connectstr);
+	
+	SimpleButton* connectButton = new SimpleButton("Connect", 30, 540, 150, 200);
+	connectButton->setColors(Scalar(60,60,60), Scalar(0,0,255), Scalar(0,0,0));
+	canvas->addObject(connectButton);
+	connectButton->setListener(&Connect);
+	
+	CString* mapStr = new CString("HeightMap:", 10, 300, 280);
+	mapStr->setColor(Scalar(255,0,0));
+	canvas->addObject(mapStr);
+	
+	Image* heightMapImage = new Image(Mat(250, 250, CV_8UC3, Scalar(0,0,0)), 300, 300); //we gotta wait until we have the map
+	canvas->addObject(heightMapImage);
+	
+	SimpleGUI::GUIWindow wnd(canvas, "LAR");
+	wnd.update();
+	while(1)
+	{	
+		gateway.lock();
+		bool haveMapImage = heightMapImgReady;
+		gateway.unlock();
+		if(haveMapImage)
+		{
+		    heightMapImage->setImage(heightMapImg);
+		}
+		
+		wnd.update();
+		wnd.draw();	
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+	}
+}
+
 int main(int argc,char** argv)
 {
   Map = new HeightMap(400, 400);
@@ -145,8 +223,11 @@ int main(int argc,char** argv)
   
   boost::thread t3(VisualThread);
   
+  boost::thread UI(UIThread);
+  
   ros::AsyncSpinner spinner(1);
   spinner.start();
+  
   
   
 

@@ -71,6 +71,7 @@ class HeightMap
 	 * 3D is not yet implemented, and console representation is only partial.
 	 * Bobcat position is in represented in absolute global coordinates.
 	 */
+        Mat buildGUI(int rotation, int px, int py, int enlarger=3);
         void displayConsole();
         void displayGUI(int rotation, int px, int py, int enlarger=3);
         void displayTypesGUI(int enlarger=3);
