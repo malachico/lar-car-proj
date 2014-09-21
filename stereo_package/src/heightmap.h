@@ -18,6 +18,8 @@ using std::vector;
 #define TYPE_OBSTACLE 2
 #define FEATURE_UNKNOWN	0
 #define FEATURE_ROAD	1
+#define FEATURE_RIGHT 2
+#define FEATURE_LEFT 3
 
 class HeightMap
 {

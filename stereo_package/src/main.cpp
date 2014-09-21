@@ -273,7 +273,7 @@ void VisualThread()
       gateway.unlock();
       continue;
     }
-    Map->displayGUI(_rot.yaw*180/3.14159,_pos.x,_pos.y, 1);
+    Map->displayGUI(_rot.yaw*180/3.14159,_pos.x,_pos.y, 2);
     gateway.unlock();
     waitKey(1);
     //boost::this_thread::sleep(boost::posix_time::milliseconds(1000/MAPPING_FREQUENCY)); 

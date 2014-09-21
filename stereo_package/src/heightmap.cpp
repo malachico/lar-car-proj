@@ -245,8 +245,14 @@ void HeightMap::displayGUI(int rotation, int px, int py, int enlarger)
                 continue;
             }
             double c = (h - _min)/(_max-_min);
-	    if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_ROAD) image.at<Vec3b>(x,y) = Vec3b(10,240, 240);
-            else image.at<Vec3b>(x,y) = Vec3b(120*(1-c),240, 240);
+	    if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_ROAD)
+              image.at<Vec3b>(x,y) = Vec3b(250,255, 100);
+	    else if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_RIGHT)
+              image.at<Vec3b>(x,y) = Vec3b(250,240, 240);
+	    else if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_LEFT)
+              image.at<Vec3b>(x,y) = Vec3b(0,240, 240);
+            else 
+              image.at<Vec3b>(x,y) = Vec3b(120*(1-c),240, 240);
         }
     cvtColor(image, image, CV_HSV2BGR);
     //put the tempory arrow representing my position and rotation on the map

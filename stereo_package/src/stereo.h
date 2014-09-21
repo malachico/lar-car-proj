@@ -87,14 +87,41 @@ void ProjectDepthImage(HeightMap* map, Mat img, Vec3D myRight, Vec3D myFront, Ve
   
   for(int i = img.rows-1; i >= 0; i--)
   {
+    bool tmp_road = false;
+    bool right_road = false;
+    bool left_road = false;
+    vector<int> lanes_Xs = vector<int>(lanes.size());
+    int count = 0;
+    //printf("lanes_size: %d\n", (int)lanes.size());
+    for(vector<lane>::iterator it = lanes.begin(); it != lanes.end(); it++)
+    {
+      lane l = *it;
+      if(l.x0 != 0 || l.x1 != 0 || l.x2 != 0)
+        lanes_Xs[count] = (int)(l.x2*i*i + l.x1*i + l.x0);
+      else 
+        lanes_Xs[count] = -1;
+      //printf("lanes_Xs[%d] =  %d\n", count, lanes_Xs[count]);
+      count++;
+    }
     for(int j = 0; j < img.cols; j++)
     {
-      bool tmp_road = false;
-      for(vector<lane>::iterator it = lanes.begin(); it != lanes.end() && !tmp_road; it++)
+      if(j > (img.rows)*0.8 )
       {
-	lane l = *it;
-	if((int)(l.x2*j*j + l.x1*j + l.x0) == i) tmp_road = true; 
-      }
+	if(lanes_Xs[0] == j)
+	{
+	  left_road = true;
+	}
+	else if(lanes_Xs[count]  == j)
+	{
+	  right_road = true;
+	}  
+	else
+	{
+	 for(int k=1; k<lanes_Xs.size()-1; k++)
+	   if(lanes_Xs[k] == j)
+	    tmp_road = true;
+	}
+      } 
       uchar depth = img.at<uchar>(i, j);
       if(depth < 40 || depth > 150) continue;
       float depth_m = pow(float(depth)/753.42, -1.0661);
@@ -104,8 +131,13 @@ void ProjectDepthImage(HeightMap* map, Mat img, Vec3D myRight, Vec3D myFront, Ve
       Vec3D pos = myPos.add(myFront.multiply(depth_m).add(myRight.multiply(right_m).add(myUp.multiply(up_m))));
       map->setAbsoluteHeightAt((int)(5*pos.x), (int)(5*pos.y), (pos.z));
       if(tmp_road) map->setAbsoluteFeatureAt((int)(5*pos.x), (int)(5*pos.y), FEATURE_ROAD);
+      if(left_road) map->setAbsoluteFeatureAt((int)(5*pos.x), (int)(5*pos.y), FEATURE_LEFT);
+      if(right_road) map->setAbsoluteFeatureAt((int)(5*pos.x), (int)(5*pos.y), FEATURE_RIGHT);      
       if(pos.z > max) max = pos.z;
       if(pos.z < min) min = pos.z;
+      tmp_road = false;
+      left_road = false;
+      right_road = false;
     }
   }
   /**
@@ -170,7 +202,8 @@ void ProjectDepthImage2(HeightMap* map, Mat img, Vec3D myRight, Vec3D myFront, V
   printf("min: %f max: %f\n", min, max);
 }
 
-void ProjectDepthImage3(HeightMap* map, Mat img_disparity, Mat img_rgb, Mat Q, Vec3D myRight, Vec3D myFront, Vec3D myUp, Vec3D myPos)
+void ProjectDepthImage3(HeightMap* map, Mat img_disparity, Mat img_rgb, Mat Q, 
+			Vec3D myRight, Vec3D myFront, Vec3D myUp, Vec3D myPos)
 {
     double Q03 = Q.at<double>(0,3);
     double Q13 = Q.at<double>(1,3);
