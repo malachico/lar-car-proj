@@ -3,19 +3,24 @@
 //#include "component/ComponentStates.h"
 #include <ros/spinner.h>
 // #include <geometry_msgs/PoseWithCovarianceStamped.h>
-// #include <sensor_msgs/image_encodings.h>
-// #include <sensor_msgs/CompressedImage.h>
+#include <sensor_msgs/image_encodings.h>
+#include <boost/filesystem.hpp>
+#include <sensor_msgs/CompressedImage.h>
 #include <stereo_package/Map.h>
 #include <cv_bridge/cv_bridge.h>
 #include <boost/thread/thread.hpp>
+#include <std_msgs/Float64.h>
 // #include <roadDetection/roadLanes.h>
 // #include <roadDetection/lane.h>
 #include <std_msgs/Char.h>
 #include <opencv2/opencv.hpp>
+#include <list>
 #include <cmath>
 #include "heightmap.h"
 #include "helpermath.h"
 #include "SimpleGUI.h"
+#include <unistd.h>
+
 
 using namespace cv;
 using std::vector;
@@ -23,6 +28,9 @@ using stereo_package::MapCell;
 // using namespace roadDetection;
 using namespace SimpleGUI;
 
+string cwd;
+
+ros::Publisher pubDrive;
 
 /**
  * Frequency of doing stereo reconstruction and publishing height map
@@ -34,8 +42,8 @@ const int MAPPING_FREQUENCY = 15; //Hz
 /**
  * Flags for existence of required components
  */
-// bool camR = false;
-// bool camL = false;
+bool camR = false;
+bool camL = false;
 bool receivedLoc = false;
 // bool disparityReady = false;
 bool mapReady = false;
@@ -52,7 +60,7 @@ boost::mutex gateway;   //sync between mapper thread (writer) and visual & publi
 // /**
 //  * Global variables to be accessed by the various worker threads
 //  */
-// Mat camRImg, camLImg; 			//incoming images (input)
+Mat camRImg, camLImg; 			//incoming images (input)
 Vec3D pos, front, up, right; 		//derived from localization (input) 
 Rotation rot;				//derived from localization (input)
 HeightMap*  Map;    			//main height map
@@ -60,6 +68,27 @@ HeightMap*  Map;    			//main height map
 // vector<lane> lanes;			//road lane data
 Mat heightMapImg;
 
+
+
+void handleCamCompressed_L(const sensor_msgs::CompressedImage& msg)
+{
+  Mat img = imdecode(Mat(msg.data),1);
+  inputData.lock();
+  camLImg = img;
+  camL = true;
+  inputData.unlock();
+}
+
+void handleCamCompressed_R(const sensor_msgs::CompressedImage& msg)
+{
+  Mat img = imdecode(Mat(msg.data),1);
+  inputData.lock();
+  camRImg = img;
+  camR = true;
+  inputData.unlock();
+}
+  
+  
 void VisualThread()
 {
   while(1)
@@ -82,7 +111,7 @@ void VisualThread()
       gateway.unlock();
       continue;
     }
-    heightMapImg = Map->buildGUI(_rot.yaw*180/3.14159,_pos.x,_pos.y, 1);
+    heightMapImg = Map->buildGUI(0, -5, 0, 1);
     heightMapImgReady = true;
     gateway.unlock();
     //waitKey(1);
@@ -135,10 +164,38 @@ void handleMap(const stereo_package::Map& msg)
   gateway.unlock();
 }
 
-
+bool isDriving = false;
 void Connect(ImageButton* button, int x, int y)
 {
-	printf("oded pressed connect\n");
+  std_msgs::Float64 msg;
+  if(!isDriving) 
+  {
+    isDriving = !isDriving;
+    msg.data = 1;
+    button->setString("Connected");
+    ((SimpleButton*)button)->setColors(Scalar(60,60,60), Scalar(0,255,0), Scalar(0,0,0));
+  }
+  else 
+  {
+    isDriving = !isDriving;
+    msg.data = 0;
+    button->setString("Connect");
+    ((SimpleButton*)button)->setColors(Scalar(60,60,60), Scalar(0,0,255), Scalar(0,0,0));
+  }
+  pubDrive.publish(msg);
+  
+}
+
+void Script(ImageButton* button, int x, int y)
+{
+  string cwd = ::cwd; //school for u
+  for(int i = 0; i < 4; i++)  //this is a really stupid idea
+    cwd = cwd.substr(0, cwd.rfind("/")); //we assume path is /workspace/devel/lib/pkg/pkg
+  cwd += "/src/lar_car_project/scripts/";
+  cwd += button->getString();
+  cwd += ".sh";
+  //printf("launch: %s\n", cwd.c_str());
+  system(cwd.c_str());
 }
 
 void UIThread()
@@ -152,11 +209,11 @@ void UIThread()
 	Mat btn3 = imread("btn3.bmp", 1);
 	*/
 	
-	
+	/*
 	CString* location = new CString("Location", 10, 30, 15);
 	location->setColor(Scalar(0,0,0));
 	canvas->addObject(location);
-	
+	*/
 	CString* wayPoint = new CString("Way Point", 10, 30, 120);
 	wayPoint->setColor(Scalar(0,0,0));
 	canvas->addObject(wayPoint);
@@ -185,13 +242,58 @@ void UIThread()
 	canvas->addObject(connectButton);
 	connectButton->setListener(&Connect);
 	
-	CString* mapStr = new CString("HeightMap:", 10, 300, 280);
+	CString* mapStr = new CString("HeightMap:", 10, 200, 70);
 	mapStr->setColor(Scalar(255,0,0));
 	canvas->addObject(mapStr);
 	
-	Image* heightMapImage = new Image(Mat(250, 250, CV_8UC3, Scalar(0,0,0)), 300, 300); //we gotta wait until we have the map
+	CString* camLStr = new CString("Left Cam:", 10, 500, 70);
+	camLStr->setColor(Scalar(255,0,0));
+	canvas->addObject(camLStr);
+	
+	CString* camRStr = new CString("Right Cam:", 10, 780, 70);
+	camRStr->setColor(Scalar(255,0,0));
+	canvas->addObject(camRStr);
+
+	Image* heightMapImage = new Image(Mat(200, 250, CV_8UC3, Scalar(0,0,0)), 150, 90); //we gotta wait until we have the map
 	canvas->addObject(heightMapImage);
 	
+	Image* camLImage = new Image(Mat(200, 250, CV_8UC3, Scalar(0,0,0)), 420, 90); //we gotta wait until we have the map
+	canvas->addObject(camLImage);
+	
+	Image* camRImage = new Image(Mat(200, 250, CV_8UC3, Scalar(0,0,0)), 690, 90); //we gotta wait until we have the map
+	canvas->addObject(camRImage);
+	
+	namespace fs = boost::filesystem;
+	string cwd = ::cwd; //school for u
+	for(int i = 0; i < 4; i++)  //this is a really stupid idea
+	  cwd = cwd.substr(0, cwd.rfind("/")); //we assume path is /workspace/devel/lib/pkg/pkg
+	cwd += "/src/lar_car_project/scripts";
+	fs::path someDir(cwd);
+	fs::directory_iterator end_iter;
+
+	std::list<fs::path> files;
+
+	if ( fs::exists(someDir) && fs::is_directory(someDir))
+	{
+	  for( fs::directory_iterator dir_iter(someDir) ; dir_iter != end_iter ; ++dir_iter)
+	  {
+	    if (fs::is_regular_file(dir_iter->status()) )
+	    {
+	      files.push_back(*dir_iter);
+	    }
+	  }
+	}
+	int pos_tmp = 0;
+	for(std::list<fs::path>::iterator it = files.begin(); it != files.end(); it++)
+	{
+	  string buttonName = (*it).string();
+	  if(buttonName.substr((buttonName.length()-3), buttonName.length()) != ".sh") continue;
+	  buttonName = buttonName.substr(0, buttonName.rfind(".")).substr(buttonName.rfind("/")+1, buttonName.length());
+	  SimpleButton* btn = new SimpleButton(buttonName, pos_tmp, 10, (4+buttonName.length())*12, 30);
+	  canvas->addObject(btn);
+	  btn->setListener(&Script);
+	  pos_tmp += (4+buttonName.length())*12;
+	}
 	SimpleGUI::GUIWindow wnd(canvas, "LAR");
 	wnd.update();
 	while(1)
@@ -203,7 +305,20 @@ void UIThread()
 		{
 		    heightMapImage->setImage(heightMapImg);
 		}
-		
+		inputData.lock();
+		if(camL)
+		  camLImage->setImage(camLImg);
+		if(camR)
+		  camRImage->setImage(camRImg);
+		if(receivedLoc)
+		{
+		  char str[50];
+		  sprintf(str, "x: %g", pos.x);
+		  pos_x->setString(str);
+		  sprintf(str, "y: %g", pos.y);
+		  pos_y->setString(str);
+		}
+		inputData.unlock();
 		wnd.update();
 		wnd.draw();	
 		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
@@ -212,6 +327,9 @@ void UIThread()
 
 int main(int argc,char** argv)
 {
+  cwd = argv[0];
+  
+  
   Map = new HeightMap(400, 400);
   Map->setBlendFunc(HeightMap::maxHeightFilter);
   
@@ -220,7 +338,10 @@ int main(int argc,char** argv)
   //setMouseCallback("stereo", MouseCallBack, NULL);
   ros::NodeHandle n;
   ros::Subscriber map = n.subscribe("/PER/Map", 10, handleMap);
+  ros::Subscriber camL = n.subscribe("SENSORS/CAM/L/compressed", 10, handleCamCompressed_L);
+  ros::Subscriber camR = n.subscribe("SENSORS/CAM/R/compressed", 10, handleCamCompressed_R);
   
+  pubDrive = n.advertise<std_msgs::Float64>("/Drive", 10);
   boost::thread t3(VisualThread);
   
   boost::thread UI(UIThread);

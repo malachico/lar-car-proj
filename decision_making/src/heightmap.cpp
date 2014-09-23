@@ -226,7 +226,7 @@ void HeightMap::displayGUI(int rotation, int px, int py, int enlarger)
    
 }
 
-Mat HeightMap::buildGUI(int rotation, int px, int py, int enlarger)
+Mat HeightMap::buildGUI(int rotation, double px, double py, int enlarger)
 {
    // rdbg("gui enter");
     Mat image(_width*enlarger, _height*enlarger, CV_8UC3);

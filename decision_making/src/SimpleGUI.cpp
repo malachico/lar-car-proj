@@ -273,8 +273,8 @@ namespace SimpleGUI
 	{
 		resize(pressed, _pressed, Size(width, height));
 		resize(released, _released, Size(width, height));
-		int fontsize = min(width, height)/(title.length()+4);
-		_title = new CString(title, fontsize, (2*x+width)/2-title.length()*fontsize/2, y+height/2-fontsize);
+		int fontsize = width/(title.length()+4);
+		_title = new CString(title, fontsize, (2*x+width)/2-title.length()*fontsize/2, y+height/2-fontsize/2);
 		_isPressed = false;
 		_hover = released;
 		_listener = NULL;
@@ -294,20 +294,25 @@ namespace SimpleGUI
 		}
 		else
 		{
-			int fontsize = min(width, height)/(str.length()+4);
-			_title = new CString(str, fontsize, (2*posX+width)/2-str.length()*fontsize/2, posY+height/4);
+			int fontsize = width/(_title->getString().length()+4);
+			_title = new CString(str, fontsize, (2*posX+width)/2-str.length()*fontsize/2, posY+height/2-fontsize/2);
 		}
 	}
 	
 	void ImageButton::_reposition()
 	{
-		int fontsize = min(width, height)/(_title->getString().length()+4);
-		_title->setPos(pair<int, int>((2*posX+width)/2-_title->getString().length()*fontsize/2, posY+height/4));
+		int fontsize = width/(_title->getString().length()+4);
+		_title->setPos(pair<int, int>((2*posX+width)/2-_title->getString().length()*fontsize/2, posY+height/2-fontsize/2));
 	}
 	
 	ImageButton::~ImageButton()
 	{
 		if(_title) delete _title;
+	}
+	
+	string ImageButton::getString()
+	{
+	  return _title->getString();
 	}
 
 	void ImageButton::draw(Mat& img)

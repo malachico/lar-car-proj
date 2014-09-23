@@ -75,6 +75,7 @@ namespace SimpleGUI
 			void setHoverImg(cv::Mat& hover);
 			bool checkBounds(int x, int y);
 			void setString(std::string str);
+			std::string getString();
 			void setListener(void (*listener)(ImageButton* button, int rel_x, int rel_y));
 			
 		protected:
