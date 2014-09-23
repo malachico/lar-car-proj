@@ -4,7 +4,7 @@ from std_msgs.msg import Float64
 from std_msgs.msg import Int8
 from geometry_msgs.msg import PoseWithCovarianceStamped,Point
 from gazebo_msgs.msg import ModelStates
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 from PIL import Image as Img
 from PIL import ImageFilter,ImageTk
 from tf.transformations import euler_from_quaternion
@@ -22,7 +22,7 @@ class ROS:
       self.cam_vis = {'L':False,'R':False}
       self.display_counter = {'loc':0,'wp':0,'map':0}
       self.gui = gui
-      self.gui.way_map.buff = []
+      #self.gui.way_map.buff = []
       self.loc = {'x':0.0,'y':0.0,'theta':0.0}      
       rospy.init_node('operator')        
       #Publishers
@@ -30,9 +30,11 @@ class ROS:
       #Subscriber
       rospy.Subscriber('/LOC/Pose',PoseWithCovarianceStamped, self.location)
       rospy.Subscriber('/LPP/WP',Point, self.get_wp)      
-      rospy.Subscriber('/SENSORS/CAM/L', Image, self.imageR_callback)
-      rospy.Subscriber('/SENSORS/CAM/R', Image, self.imageL_callback)
-      rospy.Subscriber('/PER/Map', Map, self.get_map)
+      rospy.Subscriber('/SENSORS/FLEA3/0/compressed', CompressedImage, self.imageR_callback)
+      rospy.Subscriber('/SENSORS/FLEA3/1/compressed', CompressedImage, self.imageL_callback)
+      #rospy.Subscriber('/SENSORS/CAM/L', Image, self.imageR_callback)
+      #rospy.Subscriber('/SENSORS/CAM/R', Image, self.imageL_callback)
+      #rospy.Subscriber('/PER/Map', Map, self.get_map)
         
     def get_map(self,data):
       if self.display_counter['map'] == 0:

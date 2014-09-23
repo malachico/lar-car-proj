@@ -111,7 +111,7 @@ class car_gui:
     self.imgbox.pack_start(self.imageL)
     self.imgbox.set_size_request(250,100)
     #### Map View
-    self.way_map = MapViewer(self.visbox,150)
+    #self.way_map = MapViewer(self.visbox,150)
     #### Web stuff
     self.web_box = gtk_object(gtk.VBox(),True)
     self.right_box.pack_start(self.web_box.obj)

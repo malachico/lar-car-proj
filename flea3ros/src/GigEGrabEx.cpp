@@ -13,11 +13,13 @@
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
 
+#include <image_transport/image_transport.h>
+
 
 using namespace FlyCapture2;
 
-
-ros::Publisher publishers[10];
+image_transport::Publisher publishers[10];
+// ros::Publisher publishers[10];
 
 sensor_msgs::CompressedImage CompressMsg(sensor_msgs::Image& message)
 {
@@ -197,7 +199,7 @@ int main(int argc, char** argv)
 {    
     ros::init(argc, argv, "flea3ros");
     ros::NodeHandle n;
-    
+    image_transport::ImageTransport it(n);
     
     Error error;
     BusManager busMgr;
@@ -221,7 +223,8 @@ int main(int argc, char** argv)
     {
 	char topicName[90];
 	sprintf(topicName, "SENSORS/FLEA3/%d", i);
-	publishers[i] = n.advertise<sensor_msgs::Image>(topicName, 10);
+// 	publishers[i] = n.advertise<sensor_msgs::Image>(topicName, 10);
+	publishers[i] = it.advertise(topicName, 10);
         
 	PGRGuid guid;
         error = busMgr.GetCameraFromIndex(i, &guid);
