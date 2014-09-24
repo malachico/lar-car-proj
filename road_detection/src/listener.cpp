@@ -33,7 +33,7 @@ void displayImage(const sensor_msgs::CompressedImage& msg)
   
   lanes = detectRoad(m, 50, 100);
  
-  roadDetection::roadLanes retMsg;
+  road_detection::roadLanes retMsg;
   
   retMsg.header.stamp = ros::Time::now();
   retMsg.header.frame_id = "Road Detection\n";
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
   ros::NodeHandle n1;
   n = &n1;
   ros::Subscriber sub = n->subscribe("SENSORS/CAM/R/compressed", 1000, chatterCallback);
-  chatter_pub = n->advertise<roadDetection::roadLanes>("RoadLanes",1000);
+  chatter_pub = n->advertise<road_detection::roadLanes>("RoadLanes",1000);
   ros::AsyncSpinner spinner(1);
   spinner.start();
   ros::waitForShutdown();

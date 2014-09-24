@@ -18,6 +18,12 @@ using std::vector;
 #define TYPE_OBSTACLE 2
 #define FEATURE_UNKNOWN	0
 #define FEATURE_ROAD	1
+#define FEATURE_RIGHT 2
+#define FEATURE_LEFT 3
+
+///sizes of height and width of the image on which the road_detection algorithm is apllied
+#define LANES_IMAGE_HEIGHT 964
+#define LANES_IMAGE_WIDTH 1288
 
 class HeightMap
 {

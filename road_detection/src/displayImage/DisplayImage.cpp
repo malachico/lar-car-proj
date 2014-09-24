@@ -367,12 +367,17 @@ vector<double> detectRoad(Mat image, int cut_p, int down_p)
   vector<double> result;
   if(!image.data )
   {    printf( "No image data \n" );     return result; }
-  
+
+   
   ///calculate the probability of grayscale Gi to show at the image
   
   
   im_rows = image.rows; 
   im_cols = image.cols;
+  
+  {
+    //printf("%d, %d", im_rows, im_cols);
+  }
   
   win_height = im_rows/WIN_SIZE;
   win_width  = im_cols/WIN_SIZE;
@@ -456,7 +461,7 @@ vector<double> detectRoad(Mat image, int cut_p, int down_p)
       selected_contours.push_back(contours[k]);
       selected_contour = k;
       /// to remove [debug purposes]:
-        drawContours(image, contours, k, Scalar(0,0,0), 2, 8);
+        //drawContours(image, contours, k, Scalar(0,0,0), 2, 8);
     }
     
   }
@@ -538,7 +543,7 @@ vector<double> detectRoad(Mat image, int cut_p, int down_p)
       result.push_back(0);
     }
     //printBlockSize();
-    /* debug purposes: 
+    //* debug purposes: 
     printf("\nSTART DEBUG\n");
     printf("right edge size: %d\n", limitsR.size());
     if(selected_contours.size() > 0)
@@ -579,8 +584,8 @@ vector<double> detectRoad(Mat image, int cut_p, int down_p)
     //*/
   }
   
-//    imshow("walrus", image);
-//    waitKey(1);
+   imshow("walrus", image);
+   waitKey(1);
   
     
   return result;
