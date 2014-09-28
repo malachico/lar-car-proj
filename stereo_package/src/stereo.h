@@ -90,27 +90,6 @@ void ProjectDepthImage(HeightMap* map, Mat img, Vec3D myRight, Vec3D myFront, Ve
   
   for(int i = img.rows-1; i >= 0; i--)
   {
-<<<<<<< HEAD
-    bool tmp_road = false;
-    bool right_road = false;
-    bool left_road = false;
-    vector<int> lanes_Xs = vector<int>(lanes.size());
-    int count = 0;
-    //printf("lanes_size: %d\n", (int)lanes.size());
-    for(vector<lane>::iterator it = lanes.begin(); it != lanes.end(); it++)
-    {
-      lane l = *it;
-      if(l.x0 != 0 || l.x1 != 0 || l.x2 != 0)
-        lanes_Xs[count] = (int)(l.x2*i*i + l.x1*i + l.x0);
-      else 
-        lanes_Xs[count] = -1;
-      //printf("lanes_Xs[%d] =  %d\n", count, lanes_Xs[count]);
-      count++;
-    }
-    for(int j = 0; j < img.cols; j++)
-    {
-      if(j > (img.rows)*0.8 )
-=======
     bool mid_road = false;
     bool right_road = false;
     bool left_road = false;
@@ -131,29 +110,17 @@ void ProjectDepthImage(HeightMap* map, Mat img, Vec3D myRight, Vec3D myFront, Ve
     for(int j = 0; j < img.cols; j++)
     {
       if(i > (img.rows)*0.6 && lanes_Xs.size() > 0)
->>>>>>> 60dbe8ffe262cac453964c8745f94bb13f96db10
       {
 	if(lanes_Xs[0] == j)
 	{
 	  left_road = true;
 	}
-<<<<<<< HEAD
-	else if(lanes_Xs[count]  == j)
-=======
 	else if(lanes_Xs[count-1]  == j)
->>>>>>> 60dbe8ffe262cac453964c8745f94bb13f96db10
 	{
 	  right_road = true;
 	}  
 	else
 	{
-<<<<<<< HEAD
-	 for(int k=1; k<lanes_Xs.size()-1; k++)
-	   if(lanes_Xs[k] == j)
-	    tmp_road = true;
-	}
-      } 
-=======
 	  for(int k=1; k<lanes_Xs.size()-1; k++)
 	    if(lanes_Xs[k] == j)
 	    mid_road = true;
@@ -161,7 +128,6 @@ void ProjectDepthImage(HeightMap* map, Mat img, Vec3D myRight, Vec3D myFront, Ve
 	}
       }
       //*/
->>>>>>> 60dbe8ffe262cac453964c8745f94bb13f96db10
       uchar depth = img.at<uchar>(i, j);
       if(depth < 40 || depth > 150) continue;
       float depth_m = pow(float(depth)/753.42, -1.0661);
@@ -170,33 +136,12 @@ void ProjectDepthImage(HeightMap* map, Mat img, Vec3D myRight, Vec3D myFront, Ve
       float up_m = depth_m * sin_fov * 2*(-i + img.rows/2)/img.rows;
       Vec3D pos = myPos.add(myFront.multiply(depth_m).add(myRight.multiply(right_m).add(myUp.multiply(up_m))));
       map->setAbsoluteHeightAt((int)(5*pos.x), (int)(5*pos.y), (pos.z));
-<<<<<<< HEAD
-      if(tmp_road) map->setAbsoluteFeatureAt((int)(5*pos.x), (int)(5*pos.y), FEATURE_ROAD);
+      if(mid_road) map->setAbsoluteFeatureAt((int)(5*pos.x), (int)(5*pos.y), FEATURE_ROAD);
       if(left_road) map->setAbsoluteFeatureAt((int)(5*pos.x), (int)(5*pos.y), FEATURE_LEFT);
       if(right_road) map->setAbsoluteFeatureAt((int)(5*pos.x), (int)(5*pos.y), FEATURE_RIGHT);      
       if(pos.z > max) max = pos.z;
       if(pos.z < min) min = pos.z;
-      tmp_road = false;
-=======
-      if(mid_road)
-      {
-	map->setAbsoluteFeatureAt((int)(5*pos.x), (int)(5*pos.y), FEATURE_ROAD);
-	printf("FEATURE_ROAD found\n");
-      }
-      if(left_road) 
-      {
-	map->setAbsoluteFeatureAt((int)(5*pos.x), (int)(5*pos.y), FEATURE_LEFT);
-	printf("FEATURE_LEFT found\n");
-      }
-      if(right_road) 
-      {
-	map->setAbsoluteFeatureAt((int)(5*pos.x), (int)(5*pos.y), FEATURE_RIGHT);
-	printf("FEATURE_RIGHT found\n");
-      }     
-      if(pos.z > max) max = pos.z;
-      if(pos.z < min) min = pos.z;
       mid_road = false;
->>>>>>> 60dbe8ffe262cac453964c8745f94bb13f96db10
       left_road = false;
       right_road = false;
     }
