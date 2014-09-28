@@ -367,12 +367,17 @@ vector<double> detectRoad(Mat image, int cut_p, int down_p)
   vector<double> result;
   if(!image.data )
   {    printf( "No image data \n" );     return result; }
-  
+
+   
   ///calculate the probability of grayscale Gi to show at the image
   
   
   im_rows = image.rows; 
   im_cols = image.cols;
+  
+  {
+    //printf("%d, %d", im_rows, im_cols);
+  }
   
   win_height = im_rows/WIN_SIZE;
   win_width  = im_cols/WIN_SIZE;

@@ -246,11 +246,19 @@ void HeightMap::displayGUI(int rotation, int px, int py, int enlarger)
             }
             double c = (h - _min)/(_max-_min);
 	    if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_ROAD)
+<<<<<<< HEAD
               image.at<Vec3b>(x,y) = Vec3b(250,255, 100);
 	    else if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_RIGHT)
               image.at<Vec3b>(x,y) = Vec3b(250,240, 240);
 	    else if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_LEFT)
               image.at<Vec3b>(x,y) = Vec3b(0,240, 240);
+=======
+              image.at<Vec3b>(x,y) = Vec3b(0, 255, 255);
+	    else if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_RIGHT)
+              image.at<Vec3b>(x,y) = Vec3b(0, 0, 0);
+	    else if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_LEFT)
+              image.at<Vec3b>(x,y) = Vec3b(123, 255, 255);
+>>>>>>> 60dbe8ffe262cac453964c8745f94bb13f96db10
             else 
               image.at<Vec3b>(x,y) = Vec3b(120*(1-c),240, 240);
         }

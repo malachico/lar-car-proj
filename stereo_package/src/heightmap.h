@@ -20,6 +20,13 @@ using std::vector;
 #define FEATURE_ROAD	1
 #define FEATURE_RIGHT 2
 #define FEATURE_LEFT 3
+<<<<<<< HEAD
+=======
+
+///sizes of height and width of the image on which the road_detection algorithm is apllied
+#define LANES_IMAGE_HEIGHT 964
+#define LANES_IMAGE_WIDTH 1288
+>>>>>>> 60dbe8ffe262cac453964c8745f94bb13f96db10
 
 class HeightMap
 {
