@@ -201,13 +201,13 @@ void ROSThread()
       HeightMap Oded = Map->deriveMap(position.x, position.y, rot);
       vector<double>& heights = Oded.getHeights();
       //vector<int>& types = Oded.getTypes();
-      //vector<int>& features = Oded.getFeatures();
+      vector<int>& features = Oded.getFeatures();
       for(int i = 0; i < 150; i++)
 	for(int j = 0; j < 150; j++)
 	{
 	  msg.data[j*150+i].height = heights[j*150+i];
 	  //msg.data[j*150+i].type = types[j*150+i];
-	  //msg.data[j*150+i].feature = features[j*150+i];
+	  msg.data[j*150+i].feature = features[j*150+i];
 	}
     gateway.unlock();
     pubMap.publish(msg);

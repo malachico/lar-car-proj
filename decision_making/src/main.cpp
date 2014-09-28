@@ -140,26 +140,18 @@ void handleMap(const stereo_package::Map& msg)
     //acquire the info and create the map only once
     nav_msgs::MapMetaData info = msg.info;
     Map = new HeightMap(info.width, info.height);
-    vector<double>& heights = Map->getHeights();
-    for(int i = 0; i < 150; i++)
-	for(int j = 0; j < 150; j++)
-	{
-	  heights[j*150+i] = msg.data[j*150+i].height;
-	  //msg.data[j*150+i].type = types[j*150+i];
-	  //msg.data[j*150+i].feature = features[j*150+i];
-	}
   }
-  else
-  {
-    vector<double>& heights = Map->getHeights();
-    for(int i = 0; i < 150; i++)
-	for(int j = 0; j < 150; j++)
-	{
-	  heights[j*150+i] = msg.data[j*150+i].height;
-	  //msg.data[j*150+i].type = types[j*150+i];
-	  //msg.data[j*150+i].feature = features[j*150+i];
-	}
-  }
+  
+  vector<double>& heights = Map->getHeights();
+  vector<int>& features = Map->getFeatures();
+  for(int i = 0; i < 150; i++)
+      for(int j = 0; j < 150; j++)
+      {
+	heights[j*150+i] = msg.data[j*150+i].height;
+	//msg.data[j*150+i].type = types[j*150+i];
+	features[j*150+i] = msg.data[j*150+i].feature;
+      }
+  
   mapReady = true;
   gateway.unlock();
 }
@@ -218,8 +210,8 @@ void UIThread()
 	wayPoint->setColor(Scalar(0,0,0));
 	canvas->addObject(wayPoint);
 	
-	CString* pos_x = new CString("x: 0", 10, 60, 200); 
-	CString* pos_y = new CString("y: 0", 10, 60, 215); 
+	CString* pos_x = new CString("x: 0", 10, 30, 175); 
+	CString* pos_y = new CString("y: 0", 10, 30, 190); 
 	pos_x->setColor(Scalar(0,0,0));
 	canvas->addObject(pos_x);
 	pos_y->setColor(Scalar(0,0,0));
@@ -313,9 +305,9 @@ void UIThread()
 		if(receivedLoc)
 		{
 		  char str[50];
-		  sprintf(str, "x: %g", pos.x);
+		  sprintf(str, "x: %.3f", pos.x);
 		  pos_x->setString(str);
-		  sprintf(str, "y: %g", pos.y);
+		  sprintf(str, "y: %.3f", pos.y);
 		  pos_y->setString(str);
 		}
 		inputData.unlock();

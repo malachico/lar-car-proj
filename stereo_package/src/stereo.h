@@ -163,8 +163,6 @@ void ProjectDepthImage(HeightMap* map, Mat img, Vec3D myRight, Vec3D myFront, Ve
     }
     
   }
-  
-  
 //   printf("min: %f max: %f\n", min, max);
 }
 

@@ -242,7 +242,14 @@ Mat HeightMap::buildGUI(int rotation, double px, double py, int enlarger)
                 continue;
             }
             double c = (h - _min)/(_max-_min);
-            image.at<Vec3b>(x,y) = Vec3b(120*(1-c),240, 240);
+            if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_ROAD)
+              image.at<Vec3b>(x,y) = Vec3b(0, 255, 255);
+	    else if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_RIGHT)
+              image.at<Vec3b>(x,y) = Vec3b(0, 0, 0);
+	    else if(this->_featureAt(x/enlarger,y/enlarger) == FEATURE_LEFT)
+              image.at<Vec3b>(x,y) = Vec3b(123, 255, 255);
+            else 
+              image.at<Vec3b>(x,y) = Vec3b(120*(1-c),240, 240);
         }
     cvtColor(image, image, CV_HSV2BGR);
     //put the tempory arrow representing my position and rotation on the map
