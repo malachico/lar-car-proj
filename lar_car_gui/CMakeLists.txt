@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(lar_car_gui)
 find_package(catkin REQUIRED COMPONENTS
     message_generation
+    stereo_package
     roscpp rospy
     cv_bridge
     std_msgs
@@ -20,6 +21,7 @@ find_package(gazebo REQUIRED)
 catkin_package(
 	CATKIN_DEPENDS
 # 	    robil2conf
+            stereo_package
 	    gazebo_ros
 	    message_runtime
 # 	    lar_car_gui lar_car_gui_parser

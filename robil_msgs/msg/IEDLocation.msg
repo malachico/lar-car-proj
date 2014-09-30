@@ -1,2 +1,0 @@
-bool is_detected
-geometry_msgs/Point location

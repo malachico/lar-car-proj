@@ -36,7 +36,7 @@ void GasPedalStateCallback(const std_msgs::Float64& msg)
 {
 	_estimator.setGasPedalState(msg);
 }
-void GpsSpeedCallback(const localization::GpsSpeed& msg)
+void GpsSpeedCallback(const robil_msgs::GpsSpeed& msg)
 {
 	if(_added_noise)
 		_estimator.setGPSSpeedMeasurement(msg);

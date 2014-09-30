@@ -44,7 +44,7 @@ void Observer::setIMUMeasurement(sensor_msgs::Imu measurement)
 {
 	this->IMUmeasurement = measurement;
 }
-void Observer::setGPSSpeedMeasurement(robil_msgs::GpsSpeed measurement)
+void Observer::setGPSSpeedMeasurement(localization::GpsSpeed measurement)
 {
 	this->speedMeasurement = measurement;
 }
