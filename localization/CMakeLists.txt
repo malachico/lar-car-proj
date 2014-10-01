@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(localization)
 
 find_package(catkin REQUIRED COMPONENTS
+  message_generation
   cv_bridge
   roscpp
   cv_bridge
@@ -9,6 +10,15 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(OpenCV 2)
 find_package(Boost REQUIRED COMPONENTS system)
 
+add_message_files(
+    DIRECTORY msg
+    FILES
+        GpsSpeed.msg
+)
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  )
 
 catkin_package(
 

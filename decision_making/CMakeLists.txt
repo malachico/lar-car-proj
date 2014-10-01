@@ -4,6 +4,7 @@ project(decision_making)
 find_package(catkin REQUIRED COMPONENTS
     message_generation
     roscpp rospy
+stereo_package
     cv_bridge
     std_msgs
     nav_msgs
@@ -19,6 +20,7 @@ find_package(gazebo REQUIRED)
 
 catkin_package(
 	CATKIN_DEPENDS
+	    stereo_package
 # 	    robil2conf
 	    gazebo_ros
 	    message_runtime
