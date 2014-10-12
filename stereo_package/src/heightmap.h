@@ -22,6 +22,7 @@ using std::vector;
 #define FEATURE_LEFT 3
 
 ///sizes of height and width of the image on which the road_detection algorithm is apllied
+
 #define LANES_IMAGE_HEIGHT 964
 #define LANES_IMAGE_WIDTH 1288
 

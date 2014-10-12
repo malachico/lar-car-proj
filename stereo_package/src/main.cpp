@@ -304,7 +304,6 @@ int main(int argc,char** argv)
   ros::AsyncSpinner spinner(4); // Use 4 threads
   spinner.start();
   
-  
 
   ros::waitForShutdown();
   delete Map;

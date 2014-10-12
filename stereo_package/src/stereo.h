@@ -17,8 +17,10 @@ Mat getDisparity(Mat left_image, Mat right_image)
     IplImage temp=left_image;
     IplImage temp2=right_image;
     CvMat *matf= cvCreateMat ( temp.height, temp.width, CV_16S);
-    CvStereoBMState * state=cvCreateStereoBMState(CV_STEREO_BM_BASIC,16*4);
+    CvStereoBMState * state=cvCreateStereoBMState(CV_STEREO_BM_BASIC,16*7);
     cvFindStereoCorrespondenceBM(&temp,&temp2,matf,state);
+    
+    
     //CvMat * disp_left_visual= cvCreateMat(temp.height, temp.width, CV_8U);
     //cvConvertScale( matf, disp_left_visual, -16 );
     cvNormalize( matf, matf, 0, 255, CV_MINMAX, NULL );

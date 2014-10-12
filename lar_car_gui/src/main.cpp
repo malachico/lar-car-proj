@@ -28,7 +28,7 @@ using stereo_package::MapCell;
 // using namespace roadDetection;
 using namespace SimpleGUI;
 
-string CWD = "/src/lar-car-proj/scripts/";
+//string CWD = "/src/lar-car-proj/scripts/";
 string cwd;
 
 ros::Publisher pubDrive;
@@ -181,14 +181,9 @@ void Connect(ImageButton* button, int x, int y)
 
 void Script(ImageButton* button, int x, int y)
 {
-  string cwd = ::cwd; //school for u
-  for(int i = 0; i < 4; i++)  //this is a really stupid idea
-    cwd = cwd.substr(0, cwd.rfind("/")); //we assume path is /workspace/devel/lib/pkg/pkg
-  //cwd += "/src/lar_car_project/scripts/";
-  cwd += CWD;
+  string cwd = getenv("HOME");cwd += "/.ros/scripts/";
   cwd += button->getString();
   cwd += ".sh";
-  printf("launch: %s\n", cwd.c_str());
   system(cwd.c_str());
 }
 
@@ -261,11 +256,7 @@ void UIThread()
 	canvas->addObject(camRImage);
 	
 	namespace fs = boost::filesystem;
-	string cwd = ::cwd; //school for u
-	for(int i = 0; i < 4; i++)  //this is a really stupid idea
-	  cwd = cwd.substr(0, cwd.rfind("/")); //we assume path is /workspace/devel/lib/pkg/pkg
-	//cwd += "/src/lar_car_project/scripts";
-	cwd += CWD;
+	string cwd = getenv("HOME");cwd += "/.ros/scripts/";
 	fs::path someDir(cwd);
 	fs::directory_iterator end_iter;
 

@@ -39,4 +39,8 @@ install(
   DIRECTORY plugins/
   DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}/../../devel/lib
 )
+install(
+  DIRECTORY ../scripts/
+  DESTINATION $ENV{HOME}/.ros/scripts
+)
 
