@@ -42,5 +42,6 @@ install(
 install(
   DIRECTORY ../scripts/
   DESTINATION $ENV{HOME}/.ros/scripts
-)
-
+  PATTERN "../scripts/*"
+  PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                      GROUP_EXECUTE GROUP_READ)
