@@ -3,7 +3,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <vector>
-
+#include <queue>
 #include "polyfit.h"
 
 //#include <unistd.h>
@@ -13,18 +13,18 @@ using namespace std;
 using namespace cv;
 
 vector<double> entropyArray;
+vector<double>  roadMatrix;
+
 int im_rows,im_cols;
 float win_height, win_width;
-unsigned int filterValues[] = {0,255};
 
-
-const float WIN_SIZE = 250.0;
+const float WIN_SIZE = 100.0;
 
 int cut_percents;
 int down_percents;
 
 Mat entropyImage;
-Mat altEntropy;
+
 void printEntropy()
 { 
   for(int i = 0; i < WIN_SIZE*WIN_SIZE; i++) if(entropyArray.at(i)) printf("i: %d - %f\n", i+1, entropyArray.at(i));
@@ -35,30 +35,11 @@ void printBlockSize()
   printf("block size: (%f, %f)\n", win_width, win_height);
 }
 
-void calcEntropy(Mat w, int l, int k, int cut_percents, int down_percents)
+vector<double> getEntropy(Mat w, int l, int k, int cut_percents, int down_percents)
 {
+  vector<double> res;
+  double Ra,Ga,Ba, Rs,Gs,Bs;
   Vec3b intensity;
-  double Pgi;
-  
-  /// if the pixel is in the cut percents area - paint it black
-  if((l < (im_rows/win_height)*(cut_percents/100.0))) 
-  {
-    entropyArray.at(l*WIN_SIZE +k) = 0;
-    return;
-  }
-  if((l > (im_rows/win_height)*(down_percents/100.0))) 
-  {
-    entropyArray.at(l*WIN_SIZE +k) = 0;
-    return;
-  }
-  
-  
-  /// else -
-  int threshold = 20;
-  int greyThreshold = 50;
-  double Ra, Ga, Ba;
-  uchar Rm=0, Gm=0, Bm=0;
-  
   for (int i=0; i < w.rows;i++)
   {
     for(int j=0; j < w.cols;j++)
@@ -68,45 +49,59 @@ void calcEntropy(Mat w, int l, int k, int cut_percents, int down_percents)
       Ra += intensity[0];
       Ga += intensity[1];
       Ba += intensity[2];
-      
-      if(intensity[0]>Rm)
-	  Rm = intensity[0];
-      if(intensity[1]>Gm)
-	  Gm = intensity[1];
-      if(intensity[2]>Bm)
-	  Bm = intensity[2];
     }
   }
   Ra = Ra/(w.rows*w.cols);
   Ga = Ga/(w.rows*w.cols);
   Ba = Ba/(w.rows*w.cols);
   
-  if( abs(Rm-Ra) >= threshold || abs(Bm-Ba) >= threshold || abs(Bm-Ba) >= threshold )
-    entropyArray.at(l*WIN_SIZE +k) = 0;
-  else if( abs(Ga-Ra) >= greyThreshold || abs(Ga-Ba) >= greyThreshold || abs(Ra-Ba) >= greyThreshold)
+  for (int i=0; i < w.rows;i++)
   {
-    entropyArray.at(l*WIN_SIZE +k) = 0;
+    for(int j=0; j < w.cols;j++)
+    {
+      
+      intensity = w.at<Vec3b>(i,j);
+      Rs += abs(intensity[0] - Ra);
+      Gs += abs(intensity[1] - Ga);
+      Bs += abs(intensity[2] - Ba);
+    }
   }
-  else
-    entropyArray.at(l*WIN_SIZE +k) = 255;
+  Rs = Rs/(w.rows*w.cols);
+  Gs = Gs/(w.rows*w.cols);
+  Bs = Bs/(w.rows*w.cols);
+  
+  res.push_back(Ra);res.push_back(Ga);res.push_back(Ba);
+  res.push_back(Rs);res.push_back(Gs);res.push_back(Bs);
+  return res;
 }
-
 
 Mat createEntropyImage()
 {
   Mat dest = Mat(im_rows, im_cols, CV_8U);
   uchar color;
+  
+  //*
   for (int i=0; i < im_rows;i++)
   {
     for(int j=0; j < im_cols;j++)
     {
-	color = (uchar)(entropyArray.at(((int)((i/win_height)))*WIN_SIZE +(int)(j/win_width)));
-	
-	dest.at<uchar>(i,j) = color;
-	
+	color = (uchar)(entropyArray.at(((int)((i/win_height)))*WIN_SIZE +(int)(j/win_width)));	
+	dest.at<uchar>(i,j) = color;	
     } 
   }
+  //*/
   
+  /*
+  Mat w;
+  Rect roi;
+  for(int i=0; i<entropyArray.size(); i++)
+  {
+    roi = Rect( (i%(int)WIN_SIZE)*win_width, ((int)(i/WIN_SIZE))*win_height, (int)win_width, (int)win_height);
+    color = entropyArray.at(i);
+    w = Mat((int)win_height, (int)win_width, CV_8UC1, Scalar(color));  
+    w.copyTo( dest(roi) );
+  }
+  //*/
   return dest;
 }
 
@@ -315,24 +310,26 @@ void findLimits(vector<Point> *LR, vector<Point> *LL, vector<vector<Point> > *la
     height_thresh = 5;
     int goes_up_idx = selectedIdxL;
     
-    ///going up the lane:    
+    ///going up the lane: 
+//     printf("\nprior to getting up\n");
     goUpTheLane(&lastY, &stopLookingForLanes, &goes_up_idx, direction, &cont, &laneI);
+//     printf("got up\n");
     
     if(!stopLookingForLanes)
       lanes->push_back(laneI);
     
     ///looking for lane:
     findStartOfLane(selectedIdxR, &goes_up_idx, minY_idx, &cont, direction, &stopLookingForLanes);
-    
+//     printf("found lane\n");
     int got_down_idx = goes_up_idx;  
     
      ///look For Next Lane:   
     lookForNextLane(&got_down_idx, direction, &cont);
-    
+//     printf("looking for next lane\n");
     
     selectedIdxL = got_down_idx;
     counter ++;
-    /// assume max amount of lanes is 4 [3 seperating lines]
+    /// assume max amount of lanes is 3 [2 seperating lines]
     if(counter == 3) 
       stopLookingForLanes = true;
     ///repeat:
@@ -341,21 +338,172 @@ void findLimits(vector<Point> *LR, vector<Point> *LL, vector<vector<Point> > *la
   /// find right edge of road:
   height_thresh = 10;
   goes_down = false;
-  
+//   printf("looking for right lane\n");
   for(int i= 0-direction; !goes_down; i-=direction)
   {  
-    if(cont[i%cont_size].y >= maxY-height_thresh)
+    /// TODO: change the condition to be more accurate
+    if(cont[i%cont_size].y >= maxY-height_thresh || i%cont_size==0)
     {
 //       printf("i:%d, y: %d , stop Y: %d\n", i, cont[i%cont_size].y, maxY-height_thresh);
       goes_down = true;
     }
     else if(i==-1 || i == -2)
-    {}
+    {/* somewhy those indexes were corrupted...*/}
     else 
     {
       LR->push_back(cont[(i%cont_size)]);
     }
   }
+//   printf("done looking for lanes\n");
+}
+
+bool compareEntropies(vector<double> EP, vector<double> EP2) //entropyProperties
+{
+  double AT = 15; //avarageThreshold
+  double VT = 15; // varianceThreshold
+  
+  if( abs(EP[0]-EP2[0]) > AT || abs(EP[1]-EP2[1]) > AT || abs(EP[2]-EP2[2]) > AT)
+    return false;
+  else if( abs(EP[3]-EP2[3]) > VT || abs(EP[4]-EP2[4]) > VT || abs(EP[5]-EP2[5]) > VT)
+    return false;
+  return true;
+}
+
+Rect getROI(int l, int k)
+{
+  int j, i, jPlus, iPlus;
+  i = l*win_height;
+  j = k*win_width;
+    
+  if ((i+win_height >= im_rows) && (j+win_width >= im_cols))
+  {
+    iPlus = im_rows-i-1;
+    jPlus = win_width;
+  }
+  else if(j+win_width >= im_cols)
+  {
+    jPlus = im_cols-j-1;
+    iPlus = win_height;
+  }
+  else if(i+win_height >= im_rows)
+  {
+    iPlus = im_rows-i-1;
+    jPlus = im_cols-j-1;
+  }
+  else
+  {
+    iPlus = win_height;
+    jPlus = win_width;
+  }
+  Rect roi = Rect(j,i,jPlus,iPlus);
+  return roi;
+}
+
+
+Mat getROIByLandK(Mat* image, int l, int k)
+{
+  Rect roi = getROI(l,k);  
+  return Mat(*image, roi);
+}
+
+struct Pair
+{
+   int l;
+   int k;
+   int Fl;
+   int Fk;
+}; 
+
+bool calcEntropyFor_L_and_k(Mat* m, int l, int k, int fl, int fk)
+{
+  /// check entropy for this slot: 
+  Mat w = getROIByLandK(m, l, k);
+  vector<double> ep = getEntropy(w, l, k, cut_percents, down_percents);
+  
+  Mat fw = getROIByLandK(m, fl, fk);
+  vector<double> fep = getEntropy(fw, fl, fk, cut_percents, down_percents);
+  
+  if(compareEntropies(ep, fep))
+  {
+   return (entropyArray[l*WIN_SIZE +k] = 255);
+  }
+  else
+    return(entropyArray[l*WIN_SIZE +k] = 0);
+}
+
+bool comparePairs(Pair p, Pair q)
+{
+  if(p.l == q.l && p.k == q.k)
+    return true;
+  return false;
+}
+
+bool pairVectorContains(vector<Pair> *pairs, Pair p)
+{
+  for(vector<Pair>::iterator it = pairs->begin(); it != pairs->end(); ++it) 
+  {
+    if(comparePairs(*it,p))
+      return true;
+  }
+  return false;
+}
+
+void findRoadStartFromLK(Mat *image, int l, int k)
+{
+  vector<Pair> Q;
+  
+  ///check limits:
+  if(l<0 || l == WIN_SIZE)
+    return;
+  /// mark the vertex as visited
+  roadMatrix[l*WIN_SIZE +k] = 1;
+  
+  Pair p = {l,k,l,k};
+  vector<Pair>::iterator it;
+  it = Q.begin();
+  it = Q.insert(it, p);
+  
+  Pair t;
+  while(!Q.empty())
+  {
+    t = Q.back();
+    Q.pop_back();
+    
+    if(calcEntropyFor_L_and_k(image, t.l, t.k, t.Fl, t.Fk) )
+    {
+      /// PROBLEMATIC RECURSION:
+
+      if( t.l>0 && roadMatrix[(t.l-1)*WIN_SIZE +t.k] != 1) // upper neighbor
+      {
+	roadMatrix[(t.l-1)*WIN_SIZE +t.k] = 1;
+	Pair PP = {t.l-1, t.k, t.l, t.k};
+	it = Q.begin();
+	it = Q.insert(it, PP);
+      }
+      if( t.l<WIN_SIZE-1 && roadMatrix[(t.l+1)*WIN_SIZE +t.k] != 1) // lower neighbor
+      {
+	roadMatrix[(t.l+1)*WIN_SIZE +t.k] = 1;
+	Pair PP = {t.l+1, t.k, t.l, t.k};
+	it = Q.begin();
+	it = Q.insert(it, PP);
+      }
+      if(t.k != WIN_SIZE-1 && roadMatrix[t.l*WIN_SIZE +(t.k+1)] != 1) // right neighbor
+      {
+	roadMatrix[t.l*WIN_SIZE +(t.k+1)] = 1;
+	Pair PP = {t.l, t.k+1, t.l, t.k};
+	it = Q.begin();
+	it = Q.insert(it, PP);
+      }
+      if(t.k != 0 && roadMatrix[(t.l)*WIN_SIZE + (t.k-1)] != 1) // left neighbor
+      {
+	roadMatrix[(t.l)*WIN_SIZE + (t.k-1)] = 1;
+	Pair PP = {t.l, t.k-1, t.l, t.k};
+	it = Q.begin();
+	it = Q.insert(it, PP);
+      }
+    }
+  }
+
 }
 
 
@@ -363,56 +511,34 @@ void findLimits(vector<Point> *LR, vector<Point> *LL, vector<vector<Point> > *la
  *  detectRoad:
  ** *******************************/
 vector<double> detectRoad(Mat image, int cut_p, int down_p) 
-{
+{  
+  printf("displaing image\n");
   vector<double> result;
   if(!image.data )
   {    printf( "No image data \n" );     return result; }
-
-   
-  ///calculate the probability of grayscale Gi to show at the image
-  
   
   im_rows = image.rows; 
   im_cols = image.cols;
   
-  {
-    //printf("%d, %d", im_rows, im_cols);
-  }
-  
   win_height = im_rows/WIN_SIZE;
   win_width  = im_cols/WIN_SIZE;
   
+  entropyArray.clear();
+  roadMatrix  .clear();
   entropyArray.resize(WIN_SIZE*WIN_SIZE, 0);
-
+  roadMatrix  .resize(WIN_SIZE*WIN_SIZE, 0);
+  
   Mat w;
   Rect roi;
   cut_percents = cut_p; 
   down_percents = down_p;
-
   
-  for(int i=0; i<im_rows; i+=win_height)
-  {
-    for(int j=0; j<im_cols; j+=win_width)
-    {
-      ///-> extract window out of the image:
-      
-      if((i+win_height >= im_rows) && !(j+win_width >= im_cols)) 
-	roi =  Rect(j,i,win_width,im_rows-i-1);
-      
-      else if(!(i+win_height >= im_rows) && (j+win_width >= im_cols)) 
-	roi =  Rect(j,i,im_cols-j-1,win_height);
-      
-      else if ((i+win_height >= im_rows) && (j+win_width >= im_cols))
-	roi =  Rect(j,i,im_cols-j-1,im_rows-i-1);
-      
-      else
-	roi =  Rect(j,i,win_width,win_height);	
-
-///    calc entropy for each window.calculation:
-      w = Mat(image, roi);
-      calcEntropy(w, i/win_height, j/win_width, cut_percents, down_percents);
-    }
-  }
+  findRoadStartFromLK(&image, WIN_SIZE-1, WIN_SIZE/2);
+  
+  
+  Rect ROI = getROI(WIN_SIZE-1, WIN_SIZE/2);
+  rectangle(image, Point(ROI.x,ROI.y), Point( ROI.x-ROI.width,ROI.y-ROI.height), Scalar(0,0,255),2,8,0);
+  
   
 ///create entropy image  
    entropyImage = createEntropyImage();
@@ -421,11 +547,14 @@ vector<double> detectRoad(Mat image, int cut_p, int down_p)
  * finding the actual road : 
  * *******************************************/
   
-/// eliminate noise on the road:
-  int factor = 3;
-  entropyImage = Erosion(entropyImage, factor);
-  factor = 4;
+/// eliminate noise on the road: 
+
+  int factor = 2;
   entropyImage = Dilation(entropyImage, factor);
+  factor = 2;
+  entropyImage = Erosion(entropyImage, factor);
+
+  imshow("debug", entropyImage);
   
 /// finding clusters:
   vector<vector<Point> > contours;
@@ -461,7 +590,7 @@ vector<double> detectRoad(Mat image, int cut_p, int down_p)
       selected_contours.push_back(contours[k]);
       selected_contour = k;
       /// to remove [debug purposes]:
-        //drawContours(image, contours, k, Scalar(0,0,0), 2, 8);
+      //  drawContours(image, contours, k, Scalar(255,255,255), 2, 8);
     }
     
   }
@@ -543,7 +672,7 @@ vector<double> detectRoad(Mat image, int cut_p, int down_p)
       result.push_back(0);
     }
     //printBlockSize();
-    //* debug purposes: 
+    /* debug purposes: 
     printf("\nSTART DEBUG\n");
     printf("right edge size: %d\n", limitsR.size());
     if(selected_contours.size() > 0)
@@ -584,22 +713,11 @@ vector<double> detectRoad(Mat image, int cut_p, int down_p)
     //*/
   }
   
-   imshow("walrus", image);
-   waitKey(1);
+//    imshow("walrus", image);
+//    waitKey(1);
   
     
   return result;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
