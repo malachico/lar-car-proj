@@ -21,9 +21,9 @@ ros::Publisher chatter_pub ;
 void displayImage(const sensor_msgs::CompressedImage& msg)
 // void displayImage(const sensor_msgs::Image& msg)
 {
-  //Mat m = imdecode(Mat(msg.data),1);
-  
-  Mat m = imread("src/lar_car_project/shadow_removal/src/pics/shadow.jpg", 1);
+  Mat m = imdecode(Mat(msg.data),1);
+
+//   Mat m = imread("Desktop/lar_ws/src/lar-car-proj/shadow_removal/src/pics/shadow.jpg", 1);
   
   vector<double> lanes = remove_shadow(m);
   

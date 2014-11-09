@@ -15,13 +15,13 @@ using namespace cv;
 vector<int>  connectivityMatrix, coverageMatrix;
 
 int im_rows,im_cols;
+
 float win_height, win_width;
 
-const float WIN_SIZE = 100.0;
+const float WIN_SIZE = 85.0;
 
 int cut_percents;
 int down_percents;
-
 Mat entropyImage;
 
 /** new variables **/
@@ -85,33 +85,6 @@ vector<double> getEntropy(Mat w, int l, int k, int cut_percents, int down_percen
   return res;
 }
 
-Mat createEntropyImage()
-{
-  Mat dest = Mat(im_rows, im_cols, CV_8UC1);
-  uchar color;
-  int i,j;
-  try
-  {
-    for (i=0; i < im_rows;i++)
-    {
-      for(j=0; j < im_cols;j++)
-      {
-	  color = (uchar)(connectivityMatrix[ ((int)((i/win_height)))*WIN_SIZE +(int)(j/win_width) ]);
-	  dest.at<uchar>(i,j) = (color*5); 
-      } 
-    }
-  }
-  catch (std::out_of_range& oor)
-  {
-    //*/
-    printf("\nerror: connectivityMatrix at [%d +%d = %d]\n", 
-	    ((int)((i/win_height)))*WIN_SIZE, (int)(j/win_width),
-	    ((int)((i/win_height)))*WIN_SIZE +(int)(j/win_width));
-    //*/
-  }
-  return dest;
-}
-
 
 bool compareEntropies(vector<double> EP, vector<double> EP2) //entropyProperties
 {
@@ -120,8 +93,8 @@ bool compareEntropies(vector<double> EP, vector<double> EP2) //entropyProperties
   
   if( abs(EP[0]-EP2[0]) > AT || abs(EP[1]-EP2[1]) > AT || abs(EP[2]-EP2[2]) > AT)
     return false;
-//   else if( abs(EP[3]-EP2[3]) > VT || abs(EP[4]-EP2[4]) > VT || abs(EP[5]-EP2[5]) > VT)
-//     return false;
+  else if( abs(EP[3]-EP2[3]) > VT || abs(EP[4]-EP2[4]) > VT || abs(EP[5]-EP2[5]) > VT)
+    return false;
   return true;
 }
 
@@ -262,51 +235,46 @@ Pair getEmptySlot()
   return res;
 }
 
+Mat createChromaticityImage(Mat m)
+{
+  Mat dest = Mat(im_rows, im_cols, CV_8UC3);
+  Vec3b rgb;
+  Vec3b RGBsig;
+  int teta = 60;
+  RGBsig[0] = teta;
+  for(int i=0; i< im_rows; i++)
+  {
+    for(int j=0; j<im_cols; j++)
+    {
+      rgb = m.at<Vec3b>(i,j);
+      RGBsig[1] = 60*log(rgb[0]/(float)(rgb[1]));
+      RGBsig[2] = 60*log(rgb[2]/(float)(rgb[1]));
+      dest.at<Vec3b>(i,j) = RGBsig;
+    }
+  }
+  return dest;
+}
+
+
 
 /** *******************************
  *  detectRoad:
  ** *******************************/
 vector<double> remove_shadow(Mat image) 
 {  
-//   printf("displaing image\n");
+  printf("displaing image\n");
   vector<double> result;
   if(!image.data )
   {    printf( "No image data \n" );     return result; }
-  
-  /** reset arguments **/
-  level = 5;
-  finished = false;
-  entropyImage.release();
-  
-  connectivityMatrix.clear();
-  coverageMatrix.clear();
-  
-  connectivityMatrix.resize(WIN_SIZE*WIN_SIZE, 0);
-  coverageMatrix    .resize(WIN_SIZE*WIN_SIZE, 0);
-  /** end **/  
-  
-  cvtColor( image, image, CV_BGR2HSV );
 
   im_rows = image.rows; 
   im_cols = image.cols;
   
-  win_height = im_rows/WIN_SIZE;
-  win_width  = im_cols/WIN_SIZE;
-  
-   while(!finished)
-  {
-    Pair p = getEmptySlot();    
-    findConnectivityComponentsStartFromLK(&image, p.l, p.k);
-    level++;
-  }
+  Mat chrome = createChromaticityImage(image);
   
   
-///create entropy image  
-   entropyImage = createEntropyImage();
-
-   
-  imshow("debug", entropyImage);
-  imshow("walrus", image);
+  imshow("K", chrome);
+  imshow("roman", image);
   waitKey(1);
 
     
