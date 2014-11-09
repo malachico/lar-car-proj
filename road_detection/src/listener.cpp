@@ -60,7 +60,7 @@ void displayImage(const sensor_msgs::CompressedImage& msg)
  ** */
   
 int counter = 0;
-int everyNthTime = 10;
+int everyNthTime = 2;
 
 void chatterCallback(const sensor_msgs::CompressedImage& msg)
 {
