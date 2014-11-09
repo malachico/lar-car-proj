@@ -255,6 +255,24 @@ Mat createChromaticityImage(Mat m)
   return dest;
 }
 
+Mat getBSigmaImage(Mat m)
+{
+  Mat dest = Mat(im_rows, im_cols, CV_8UC3);
+  Vec3b rgb;
+  Vec3b RGBsig;
+  RGBsig[0] = 0;
+  for(int i=0; i< im_rows; i++)
+  {
+    for(int j=0; j<im_cols; j++)
+    {
+      rgb = m.at<Vec3b>(i,j);
+      RGBsig[1] = log(rgb[1]);
+      RGBsig[2] = log(rgb[2]/(float)(rgb[1]));
+      dest.at<Vec3b>(i,j) = RGBsig;
+    }
+  }
+  return dest;
+}
 
 
 /** *******************************
@@ -269,12 +287,11 @@ vector<double> remove_shadow(Mat image)
 
   im_rows = image.rows; 
   im_cols = image.cols;
+    
+  Mat Bsigma = getBSigmaImage(image);
   
-  Mat chrome = createChromaticityImage(image);
+  imshow("K", Bsigma);
   
-  
-  imshow("K", chrome);
-  imshow("roman", image);
   waitKey(1);
 
     
