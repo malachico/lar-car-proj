@@ -170,5 +170,7 @@ include_directories(
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(flea3ros src/GigEGrabEx.cpp)
+add_executable(flea3config src/GigEConfig.cpp)
 target_link_libraries(flea3ros ${catkin_LIBRARIES} ${OpenCV_LIBS} flycapture)
+target_link_libraries(flea3config ${catkin_LIBRARIES} ${OpenCV_LIBS} flycapture)
 #target_link_libraries( roadDetection ${OpenCV_LIBS})

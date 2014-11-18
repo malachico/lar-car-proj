@@ -19,58 +19,122 @@
 using namespace FlyCapture2;
 
 image_transport::Publisher publishers[10];
+
+// PGRGuid cameraMasterSlave[2];
 // ros::Publisher publishers[10];
 
-sensor_msgs::CompressedImage CompressMsg(sensor_msgs::Image& message)
-{
-  sensor_msgs::CompressedImage compressed;
-  compressed.header = message.header;
-  compressed.format = message.encoding;
-  compressed.format += "; png compressed";
- 
-  cv_bridge::CvImagePtr cv_ptr;
-  try
-  {
-    cv_ptr = cv_bridge::toCvCopy(message, "rgb8");
-    // Compress image
-    std::vector<int> params;
-    params.resize(3, 0);
-    params[0] = CV_IMWRITE_PNG_COMPRESSION;
-    params[1] = 2;
-    if (cv::imencode(".png", cv_ptr->image, compressed.data, params))
-    {
-      //float cRatio = (float)(cv_ptr->image.rows * cv_ptr->image.cols * cv_ptr->image.elemSize())
-      /// (float)compressed.data.size();
-      //ROS_DEBUG("Compressed Image Transport - Codec: png, Compression: 1:%.2f (%lu bytes)", cRatio, compressed.data.size());
-    }
-    else
-    {
-      ROS_ERROR("cv::imencode (png) failed on input image");
-    }
-  }
-  catch (cv_bridge::Exception& e)
-  {
-    ROS_ERROR("%s", e.what());
-  }
-  catch (cv::Exception& e)
-  {
-  ROS_ERROR("%s", e.what());
-  }
-  
-  //int bitDepth = enc::bitDepth(message.encoding);
-  //int numChannels = enc::numChannels(message.encoding);
-  return compressed;
-}
+// sensor_msgs::CompressedImage CompressMsg(sensor_msgs::Image& message)
+// {
+//   sensor_msgs::CompressedImage compressed;
+//   compressed.header = message.header;
+//   compressed.format = message.encoding;
+//   compressed.format += "; png compressed";
+//  
+//   cv_bridge::CvImagePtr cv_ptr;
+//   try
+//   {
+//     cv_ptr = cv_bridge::toCvCopy(message, "rgb8");
+//     // Compress image
+//     std::vector<int> params;
+//     params.resize(3, 0);
+//     params[0] = CV_IMWRITE_PNG_COMPRESSION;
+//     params[1] = 2;
+//     if (cv::imencode(".png", cv_ptr->image, compressed.data, params))
+//     {
+//       //float cRatio = (float)(cv_ptr->image.rows * cv_ptr->image.cols * cv_ptr->image.elemSize())
+//       /// (float)compressed.data.size();
+//       //ROS_DEBUG("Compressed Image Transport - Codec: png, Compression: 1:%.2f (%lu bytes)", cRatio, compressed.data.size());
+//     }
+//     else
+//     {
+//       ROS_ERROR("cv::imencode (png) failed on input image");
+//     }
+//   }
+//   catch (cv_bridge::Exception& e)
+//   {
+//     ROS_ERROR("%s", e.what());
+//   }
+//   catch (cv::Exception& e)
+//   {
+//   ROS_ERROR("%s", e.what());
+//   }
+//   
+//   //int bitDepth = enc::bitDepth(message.encoding);
+//   //int numChannels = enc::numChannels(message.encoding);
+//   return compressed;
+// }
 
 void PrintError( Error error )
 {
     error.PrintErrorTrace();
 }
 
+// void printRegister(GigECamera *cam)
+// {
+//   unsigned int regVal = 0;
+//   Error error;
+//   error = cam->ReadRegister( 0x11f8, &regVal );
+//   if (error != PGRERROR_OK)
+//   {
+//       PrintError( error );
+//       return;
+//   }
+//   else
+//     printf("0x11f8  %x\n",regVal);
+//   error = cam->ReadRegister( 0x1104, &regVal );
+//   if (error != PGRERROR_OK)
+//   {
+//       PrintError( error );
+//       return;
+//   }
+//   else
+//     printf("0x1104  %x\n",regVal);
+//   error = cam->ReadRegister( 0x1508, &regVal );
+//   if (error != PGRERROR_OK)
+//   {
+//       PrintError( error );
+//       return;
+//   }
+//   else
+//     printf("0x1508  %x\n",regVal);
+// }
+// 
+// void setCamMaster(GigECamera *cam)
+// {
+//   
+//   printf("Setting camera as master\n");
+//   printf("before registery setup\n");
+//   printRegister(cam);
+//   cam->WriteRegister(0x11f8,0x60000000);
+//   cam->WriteRegister(0x1104,0x40000030);
+//   cam->WriteRegister(0x1508,0x83000400);
+//   cam->WriteRegister(0x083c,0xc20004f0);
+//   cam->WriteRegister(0x081c,0xc200078d);
+//   printf("after registery setup\n");
+//   printRegister(cam);
+// 
+// }
+// 
+// void setCamSlave(GigECamera *cam)
+// {
+//   printf("Setting camera as slave\n");
+//   printf("before registery setup\n");
+//   printRegister(cam);
+//   cam->WriteRegister(0x11f8,0x40000000);
+//   cam->WriteRegister(0x0830,0x835e0000);
+//   cam->WriteRegister(0x0834,0xc2000021);
+//   cam->WriteRegister(0x081c,0xc200078d);
+//   printf("after registery setup\n");
+//   printRegister(cam);
+// }
+
 int RunSingleCamera(PGRGuid guid, int id)
 {
     Error error;
     GigECamera cam;
+    //GigECamera cam;
+    
+    
 
     printf( "Connecting to camera...\n" );
 
@@ -138,7 +202,10 @@ int RunSingleCamera(PGRGuid guid, int id)
         PrintError( error );
         return -1;
     }
-
+//     if (cameraMasterSlave[0] == guid)
+//       setCamMaster(&cam);
+//     else if (cameraMasterSlave[1] == guid)
+//       setCamSlave(&cam);
     printf( "Starting image capture...\n" );
 
     // Start capturing images
@@ -222,6 +289,7 @@ int main(int argc, char** argv)
     for (unsigned int i=0; i < numCameras; i++)
     {
 	char topicName[90];
+	
 	sprintf(topicName, "SENSORS/FLEA3/%d", i);
 // 	publishers[i] = n.advertise<sensor_msgs::Image>(topicName, 10);
 	publishers[i] = it.advertise(topicName, 10);
@@ -241,9 +309,11 @@ int main(int argc, char** argv)
             PrintError( error );
             return -1;
         }
-
-        if ( interfaceType == INTERFACE_GIGE )
+//         if (i < 2)
+// 	  cameraMasterSlave[i] = guid;
+        if ( interfaceType == INTERFACE_GIGE)
 	    boost::thread t(RunSingleCamera, guid, i);
+	
         
     }
 
