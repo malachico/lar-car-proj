@@ -18,12 +18,15 @@ vector<double>  roadMatrix;
 int im_rows,im_cols;
 float win_height, win_width;
 
-const float WIN_SIZE = 100.0;
+const float WIN_SIZE = 85.0;
 
 int cut_percents;
 int down_percents;
 
-Mat entropyImage;
+//Mat entropyImage;
+
+/// getROI decleration
+Rect getROI(int l, int k);
 
 void printEntropy()
 { 
@@ -75,31 +78,23 @@ vector<double> getEntropy(Mat w, int l, int k, int cut_percents, int down_percen
   return res;
 }
 
-Mat createEntropyImage()
+Mat createEntropyImage(Mat m)
 {
   Mat dest = Mat(im_rows, im_cols, CV_8U);
   uchar color;
   
   //*
-  for (int i=0; i < im_rows;i++)
-  {
-    for(int j=0; j < im_cols;j++)
-    {
-	color = (uchar)(entropyArray.at(((int)((i/win_height)))*WIN_SIZE +(int)(j/win_width)));	
-	dest.at<uchar>(i,j) = color;	
-    } 
-  }
-  //*/
-  
-  /*
-  Mat w;
   Rect roi;
-  for(int i=0; i<entropyArray.size(); i++)
+  int l,k;
+  for(l=0; l< WIN_SIZE; l++)
   {
-    roi = Rect( (i%(int)WIN_SIZE)*win_width, ((int)(i/WIN_SIZE))*win_height, (int)win_width, (int)win_height);
-    color = entropyArray.at(i);
-    w = Mat((int)win_height, (int)win_width, CV_8UC1, Scalar(color));  
-    w.copyTo( dest(roi) );
+    for(k=0; k<WIN_SIZE; k++)
+    {	
+      roi = getROI(l,k);
+      color = entropyArray[l*WIN_SIZE + k];
+      dest(roi).setTo(Scalar(color));
+      
+    }
   }
   //*/
   return dest;
@@ -263,7 +258,7 @@ void findLimits(vector<Point> *LR, vector<Point> *LL, vector<vector<Point> > *la
 {
   int cont_size = cont.size();
   
-  selectedIdxR = findButtomMostRightPointIdx(cont);
+//   selectedIdxR = findButtomMostRightPointIdx(cont);
   
   int selectedIdxL = 0;
   int direction = 0,counts = 1;
@@ -278,13 +273,15 @@ void findLimits(vector<Point> *LR, vector<Point> *LL, vector<vector<Point> > *la
       direction = -1;
     }
   }
+  
+  bool goes_down = false; 
+    /*
+  bool is_down = false;
+  selectedIdxL = 0; 
   int minY_idx = (selectedIdxL + direction)%cont_size;
   minY = cont[minY_idx].y;
-  bool is_down = false;
-  selectedIdxL = 0;
-  
   /// find left edge of road:
-  bool goes_down = false; 
+  
   int lastY=cont[selectedIdxL].y;
   
   int ii;
@@ -301,7 +298,7 @@ void findLimits(vector<Point> *LR, vector<Point> *LL, vector<vector<Point> > *la
     }
   }
   selectedIdxL = ii%cont_size;
-  
+
   bool stopLookingForLanes = false;
   int counter =0;
   do 
@@ -327,14 +324,16 @@ void findLimits(vector<Point> *LR, vector<Point> *LL, vector<vector<Point> > *la
     lookForNextLane(&got_down_idx, direction, &cont);
 //     printf("looking for next lane\n");
     
-    selectedIdxL = got_down_idx;
+    selectedId("counter: %d\n", counter);xL = got_down_idx;
     counter ++;
     /// assume max amount of lanes is 3 [2 seperating lines]
     if(counter == 3) 
       stopLookingForLanes = true;
     ///repeat:
   }while(!stopLookingForLanes);
+  */
   
+  /*
   /// find right edge of road:
   height_thresh = 10;
   goes_down = false;
@@ -348,13 +347,59 @@ void findLimits(vector<Point> *LR, vector<Point> *LL, vector<vector<Point> > *la
       goes_down = true;
     }
     else if(i==-1 || i == -2)
-    {/* somewhy those indexes were corrupted...*/}
+    {
+      ///somewhy those indexes were corrupted...      
+    }
     else 
     {
       LR->push_back(cont[(i%cont_size)]);
     }
   }
 //   printf("done looking for lanes\n");
+
+  */
+  int PointsToCount = 100;
+  int counter = 0;
+  goes_down = false;
+  for(int i= 0+direction; !goes_down; i+=direction)
+  {  
+    /// TODO: change the condition to be more accurate
+    if(counter == PointsToCount || i%cont_size==0)
+    {
+      goes_down = true;
+    }
+    else if(i==-1 || i == -2)
+    {
+      ///somewhy those indexes were corrupted...      
+    }
+    else 
+    {
+      counter++;
+      if(cont[(i%cont_size)].x < im_cols/2)
+	LL->push_back(cont[(i%cont_size)]);
+    }
+  }
+  
+  counter = 0;
+  goes_down = false;
+  for(int i= 0-direction; !goes_down; i-=direction)
+  {  
+    /// TODO: change the condition to be more accurate
+    if(counter == PointsToCount || i%cont_size==0)
+    {
+      goes_down = true;
+    }
+    else if(i==-1 || i == -2)
+    {
+      ///somewhy those indexes were corrupted...      
+    }
+    else 
+    {
+      counter++;
+      if(cont[(i%cont_size)].x >im_cols/2)
+	LR->push_back(cont[(i%cont_size)]);
+    }
+  }
 }
 
 bool compareEntropies(vector<double> EP, vector<double> EP2) //entropyProperties
@@ -428,7 +473,7 @@ bool calcEntropyFor_L_and_k(Mat* m, int l, int k, int fl, int fk)
    return (entropyArray[l*WIN_SIZE +k] = 255);
   }
   else
-    return(entropyArray[l*WIN_SIZE +k] = 0);
+    return 0;//(entropyArray[l*WIN_SIZE +k] = 0);
 }
 
 bool comparePairs(Pair p, Pair q)
@@ -510,9 +555,8 @@ void findRoadStartFromLK(Mat *image, int l, int k)
 /** *******************************
  *  detectRoad:
  ** *******************************/
-vector<double> detectRoad(Mat image, int cut_p, int down_p) 
+vector<double> detectRoad(Mat image, int cut_p, int down_p, int toDebug) 
 {  
-  printf("displaing image\n");
   vector<double> result;
   if(!image.data )
   {    printf( "No image data \n" );     return result; }
@@ -533,15 +577,27 @@ vector<double> detectRoad(Mat image, int cut_p, int down_p)
   cut_percents = cut_p; 
   down_percents = down_p;
   
-  findRoadStartFromLK(&image, WIN_SIZE-1, WIN_SIZE/2);
   
+  findRoadStartFromLK(&image, WIN_SIZE-10, WIN_SIZE*3/4);
+  findRoadStartFromLK(&image, WIN_SIZE-10, WIN_SIZE*1/4);
+  findRoadStartFromLK(&image, WIN_SIZE-20, WIN_SIZE*2/3);
+  findRoadStartFromLK(&image, WIN_SIZE-20, WIN_SIZE*1/3);
   
-  Rect ROI = getROI(WIN_SIZE-1, WIN_SIZE/2);
+  Rect ROI = getROI(WIN_SIZE-10, WIN_SIZE*3/4);
+  rectangle(image, Point(ROI.x,ROI.y), Point( ROI.x-ROI.width,ROI.y-ROI.height), Scalar(0,0,255),2,8,0);
+  
+  ROI = getROI(WIN_SIZE-10, WIN_SIZE*1/4);
+  rectangle(image, Point(ROI.x,ROI.y), Point( ROI.x-ROI.width,ROI.y-ROI.height), Scalar(0,0,255),2,8,0);
+  
+  ROI = getROI(WIN_SIZE-20, WIN_SIZE*2/3);
+  rectangle(image, Point(ROI.x,ROI.y), Point( ROI.x-ROI.width,ROI.y-ROI.height), Scalar(0,0,255),2,8,0);
+  
+  ROI = getROI(WIN_SIZE-20, WIN_SIZE*1/3);
   rectangle(image, Point(ROI.x,ROI.y), Point( ROI.x-ROI.width,ROI.y-ROI.height), Scalar(0,0,255),2,8,0);
   
   
 ///create entropy image  
-   entropyImage = createEntropyImage();
+   Mat entropyImage = createEntropyImage(image);
    
 /** *****************************************
  * finding the actual road : 
@@ -672,49 +728,53 @@ vector<double> detectRoad(Mat image, int cut_p, int down_p)
       result.push_back(0);
     }
     //printBlockSize();
-    /* debug purposes: 
-    printf("\nSTART DEBUG\n");
-    printf("right edge size: %d\n", limitsR.size());
-    if(selected_contours.size() > 0)
-      circle(image, selected_contours[0][0], 8, Scalar(255,255,255), -1,8,0);
-    for(int j=0; j<limitsL.size(); j++)
+    //* debug purposes: 
+    if(toDebug)
     {
-      int x = limitsL[j].y;
-      double y = a[0] + a[1]*x*1.0 + a[2]*x*x*1.0;
-      
-      circle(image, Point(y,x), 3, Scalar(0,0,255), -1, 8, 0);
-      //circle(image, limitsL[j], 3, Scalar(0,255,255), -1, 8, 0);
-    }
-    
-    for(int j=0; j<limitsR.size() && j < 500; j++)
-    {
-      int x = limitsR[j].y;
-      double y = b[0] + b[1]*x*1.0 + b[2]*x*x*1.0;
-      
-      circle(image, Point(y,x),3, Scalar(255,0,0), -1, 8, 0);
-//       circle(image, limitsR[j], 3, Scalar(255,0,255), -1, 8, 0);
-    }
-    
-    for(int j=0; j<lanes.size(); j++)
-    {
-      for(int k=0; k<lanes[j].size(); k++)
+      printf("\nSTART DEBUG\n");
+      if(selected_contours.size() > 0)
+	circle(image, selected_contours[0][0], 8, Scalar(255,255,255), -1,8,0);
+      for(int j=0; j<limitsL.size(); j++)
       {
-	if( &lanes[j][k] != 0)
+	int x = limitsL[j].y;
+	double y = a[0] + a[1]*x*1.0 + a[2]*x*x*1.0;
+	
+	circle(image, Point(y,x), 3, Scalar(0,0,255), -1, 8, 0);
+	//circle(image, limitsL[j], 3, Scalar(0,255,255), -1, 8, 0);
+      }
+      
+      for(int j=0; j<limitsR.size() && j < 500; j++)
+      {
+	int x = limitsR[j].y;
+	double y = b[0] + b[1]*x*1.0 + b[2]*x*x*1.0;
+	
+	circle(image, Point(y,x),3, Scalar(255,0,0), -1, 8, 0);      
+	
+      }
+
+      
+      for(int j=0; j<lanes.size(); j++)
+      {
+	for(int k=0; k<lanes[j].size(); k++)
 	{
-	  int x = lanes[j][k].y;
-	  double y = Cs[j][0] + Cs[j][1]*x*1.0 + Cs[j][2]*x*x*1.0;
-	  
-	  circle(image, Point(y,x), 3, Scalar(120*(j+1),120*(j+1),0), -1, 8, 0);
-	  //circle(image, lanes[j][k], 3, Scalar(0,60*(j+1),0), -1, 8, 0);
+	  if( &lanes[j][k] != 0)
+	  {
+	    int x = lanes[j][k].y;
+	    double y = Cs[j][0] + Cs[j][1]*x*1.0 + Cs[j][2]*x*x*1.0;
+	    
+	    circle(image, Point(y,x), 3, Scalar(120*(j+1),120*(j+1),0), -1, 8, 0);
+	  }
 	}
       }
+      printf("END DEBUG\n");
     }
-    printf("END DEBUG\n");
-    //*/
   }
   
-//    imshow("walrus", image);
-//    waitKey(1);
+  if(toDebug)
+  {
+    imshow("walrus", image);
+    waitKey(1);
+  }
   
     
   return result;

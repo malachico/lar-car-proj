@@ -21,6 +21,8 @@ using namespace std;
 ros::NodeHandle *n;
 ros::Publisher chatter_pub ;
 
+int toDebug;
+
 void displayImage(const sensor_msgs::CompressedImage& msg)
 // void displayImage(const sensor_msgs::Image& msg)
 {
@@ -31,7 +33,7 @@ void displayImage(const sensor_msgs::CompressedImage& msg)
   //waitKey(0);
   std::vector<double> lanes;
   
-  lanes = detectRoad(m, 50, 100);
+  lanes = detectRoad(m, 50, 100, toDebug);
  
   road_detection::roadLanes retMsg;
   
@@ -58,7 +60,7 @@ void displayImage(const sensor_msgs::CompressedImage& msg)
  ** */
   
 int counter = 0;
-int everyNthTime = 10;
+int everyNthTime = 2;
 
 void chatterCallback(const sensor_msgs::CompressedImage& msg)
 {
@@ -81,8 +83,13 @@ void chatterCallback(const sensor_msgs::CompressedImage& msg)
 
 int main(int argc, char **argv)
 {
+  if(argc > 1)
+    if(strcmp(argv[1], "-d"))
+      toDebug = 0;
+    else
+      toDebug =1; 
+    
   ros::init(argc, argv, "listener");
-
   ros::NodeHandle n1;
   n = &n1;
   ros::Subscriber sub = n->subscribe("SENSORS/CAM/R/compressed", 1000, chatterCallback);
