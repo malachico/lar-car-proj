@@ -192,7 +192,7 @@ int RunSingleCamera(PGRGuid guid, int id)
     imageSettings.offsetY = 0;
     imageSettings.height = imageSettingsInfo.maxHeight;
     imageSettings.width = imageSettingsInfo.maxWidth;
-    imageSettings.pixelFormat = PIXEL_FORMAT_RGB;
+    imageSettings.pixelFormat = PIXEL_FORMAT_RAW8;
 
     printf( "Setting GigE image settings...\n" );
 
@@ -227,16 +227,21 @@ int RunSingleCamera(PGRGuid guid, int id)
             PrintError( error );
             continue;
         }
-	sensor_msgs::Image msg;
-	msg.header.seq = seq;
-	msg.header.frame_id = "1";
-	msg.header.stamp = ros::Time::now();
-        msg.height = rawImage.GetRows();
-	msg.width = rawImage.GetCols();
-	msg.encoding = sensor_msgs::image_encodings::RGB8;
-	msg.is_bigendian = 0;
-	msg.step = rawImage.GetStride();
-	msg.data = std::vector<unsigned char>(rawImage.GetData(),rawImage.GetData()+rawImage.GetDataSize());
+	
+	// Copy the data into an OpenCV Mat structure
+	cv::Mat bayer8BitMat(rawImage.GetRows(), rawImage.GetCols(), CV_8UC1, rawImage.GetData());
+	cv::Mat rgb8BitMat(rawImage.GetRows(), rawImage.GetCols(), CV_8UC3);
+	cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGR2RGB);
+	sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", rgb8BitMat).toImageMsg();
+	msg->header.seq = seq;
+	msg->header.frame_id = "1";
+	msg->header.stamp = ros::Time::now();
+        msg->height = rawImage.GetRows();
+	msg->width = rawImage.GetCols();
+	msg->encoding = sensor_msgs::image_encodings::RGB8;
+	msg->is_bigendian = 0;
+	msg->step = rawImage.GetStride();
+
 	publishers[id].publish(msg);//CompressMsg(msg));
         seq++;
     }         
