@@ -41,6 +41,5 @@ include_directories(
 
 link_directories(${GAZEBO_LIBRARY_DIRS})
 add_executable(lar_car_gui src/main.cpp src/helpermath.cpp src/heightmap.cpp src/SimpleGUI.cpp)
-target_link_libraries(lar_car_gui ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${OpenCV_LIBS} ${GAZEBO_libraries} 
-)
+target_link_libraries(lar_car_gui ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${OpenCV_LIBS} ${GAZEBO_libraries} )
 link_directories(${GAZEBO_LIBRARY_DIRS})

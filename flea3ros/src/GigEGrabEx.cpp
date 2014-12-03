@@ -20,114 +20,57 @@ using namespace FlyCapture2;
 
 image_transport::Publisher publishers[10];
 
-// PGRGuid cameraMasterSlave[2];
-// ros::Publisher publishers[10];
-
-// sensor_msgs::CompressedImage CompressMsg(sensor_msgs::Image& message)
-// {
-//   sensor_msgs::CompressedImage compressed;
-//   compressed.header = message.header;
-//   compressed.format = message.encoding;
-//   compressed.format += "; png compressed";
-//  
-//   cv_bridge::CvImagePtr cv_ptr;
-//   try
-//   {
-//     cv_ptr = cv_bridge::toCvCopy(message, "rgb8");
-//     // Compress image
-//     std::vector<int> params;
-//     params.resize(3, 0);
-//     params[0] = CV_IMWRITE_PNG_COMPRESSION;
-//     params[1] = 2;
-//     if (cv::imencode(".png", cv_ptr->image, compressed.data, params))
-//     {
-//       //float cRatio = (float)(cv_ptr->image.rows * cv_ptr->image.cols * cv_ptr->image.elemSize())
-//       /// (float)compressed.data.size();
-//       //ROS_DEBUG("Compressed Image Transport - Codec: png, Compression: 1:%.2f (%lu bytes)", cRatio, compressed.data.size());
-//     }
-//     else
-//     {
-//       ROS_ERROR("cv::imencode (png) failed on input image");
-//     }
-//   }
-//   catch (cv_bridge::Exception& e)
-//   {
-//     ROS_ERROR("%s", e.what());
-//   }
-//   catch (cv::Exception& e)
-//   {
-//   ROS_ERROR("%s", e.what());
-//   }
-//   
-//   //int bitDepth = enc::bitDepth(message.encoding);
-//   //int numChannels = enc::numChannels(message.encoding);
-//   return compressed;
-// }
-
 void PrintError( Error error )
 {
     error.PrintErrorTrace();
 }
 
-// void printRegister(GigECamera *cam)
-// {
-//   unsigned int regVal = 0;
-//   Error error;
-//   error = cam->ReadRegister( 0x11f8, &regVal );
-//   if (error != PGRERROR_OK)
-//   {
-//       PrintError( error );
-//       return;
-//   }
-//   else
-//     printf("0x11f8  %x\n",regVal);
-//   error = cam->ReadRegister( 0x1104, &regVal );
-//   if (error != PGRERROR_OK)
-//   {
-//       PrintError( error );
-//       return;
-//   }
-//   else
-//     printf("0x1104  %x\n",regVal);
-//   error = cam->ReadRegister( 0x1508, &regVal );
-//   if (error != PGRERROR_OK)
-//   {
-//       PrintError( error );
-//       return;
-//   }
-//   else
-//     printf("0x1508  %x\n",regVal);
-// }
-// 
-// void setCamMaster(GigECamera *cam)
-// {
-//   
-//   printf("Setting camera as master\n");
-//   printf("before registery setup\n");
-//   printRegister(cam);
-//   cam->WriteRegister(0x11f8,0x60000000);
-//   cam->WriteRegister(0x1104,0x40000030);
-//   cam->WriteRegister(0x1508,0x83000400);
-//   cam->WriteRegister(0x083c,0xc20004f0);
-//   cam->WriteRegister(0x081c,0xc200078d);
-//   printf("after registery setup\n");
-//   printRegister(cam);
-// 
-// }
-// 
-// void setCamSlave(GigECamera *cam)
-// {
-//   printf("Setting camera as slave\n");
-//   printf("before registery setup\n");
-//   printRegister(cam);
-//   cam->WriteRegister(0x11f8,0x40000000);
-//   cam->WriteRegister(0x0830,0x835e0000);
-//   cam->WriteRegister(0x0834,0xc2000021);
-//   cam->WriteRegister(0x081c,0xc200078d);
-//   printf("after registery setup\n");
-//   printRegister(cam);
-// }
 
+void printTriggerModeInfo(TriggerModeInfo info)
+{
+  printf("present %d\n",info.present);
+  printf("read Out Supported: %d\n",info.readOutSupported);
+  printf("OnOffSupported: %d\n",info.onOffSupported);
+  printf("value readable: %d\n",info.valueReadable);
+  printf("mode Mask: %d\n",info.modeMask);
+  
+}
+void printTriggerMode(TriggerMode info)
+{
+  printf("on off: %d\n", info.onOff);
+  printf("polarity: %d\n", info.polarity);
+  printf("source: %d\n", info.source);
+  printf("mode: %d\n", info.mode);
+  printf("parameter: %d\n", info.parameter);
+
+}
+
+void setCamMaster(GigECamera *cam)
+{
+  StrobeControl s;
+  s.source = 2;
+  s.onOff = true;
+  s.polarity = 0;
+  s.delay = 0;
+  s.duration = 10;
+  Error error = cam->SetStrobe(&s);
+  //std::cout << error << std::end;
+
+}
+void setCamSlave(GigECamera *cam)
+{
+  TriggerMode t;
+  Error error = cam->GetTriggerMode(&t);
+  printTriggerMode(t);
+  t.source = 2;
+  t.onOff = true;
+  t.polarity = 0;
+  t.mode = 1;
+  t.parameter = 0;
+  error = cam->SetTriggerMode(&t);
+  error = cam->GetTriggerMode(&t);
+  printTriggerMode(t);
+}
 int RunSingleCamera(PGRGuid guid, int id)
 {
     Error error;
@@ -137,7 +80,7 @@ int RunSingleCamera(PGRGuid guid, int id)
     
 
     printf( "Connecting to camera...\n" );
-
+    
     // Connect to a camera
     error = cam.Connect(&guid);
     if (error != PGRERROR_OK)
@@ -177,6 +120,15 @@ int RunSingleCamera(PGRGuid guid, int id)
         //PrintStreamChannelInfo( &streamChannel );
     }    
 
+
+    
+    // set strobe for id==1
+//     if(id == 0)
+//     {
+//       setCamMaster(&cam);
+//     }
+//     else
+//       setCamSlave(&cam);
     printf( "Querying GigE image setting information...\n" );
 
     GigEImageSettingsInfo imageSettingsInfo;
@@ -232,15 +184,18 @@ int RunSingleCamera(PGRGuid guid, int id)
 	cv::Mat bayer8BitMat(rawImage.GetRows(), rawImage.GetCols(), CV_8UC1, rawImage.GetData());
 	cv::Mat rgb8BitMat(rawImage.GetRows(), rawImage.GetCols(), CV_8UC3);
 	cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGR2RGB);
+// 	cv::imshow("im",rgb8BitMat);
+// 	cv::waitKey(1);
 	sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", rgb8BitMat).toImageMsg();
 	msg->header.seq = seq;
 	msg->header.frame_id = "1";
 	msg->header.stamp = ros::Time::now();
-        msg->height = rawImage.GetRows();
-	msg->width = rawImage.GetCols();
+        //msg->height = rgb8BitMat.cols;
+	//msg->width = rgb8BitMat.rows;
+	//std::cout << rgb8BitMat.cols << rgb8BitMat.rows << std::endl;
 	msg->encoding = sensor_msgs::image_encodings::RGB8;
 	msg->is_bigendian = 0;
-	msg->step = rawImage.GetStride();
+	//msg->step = rawImage.GetStride();
 
 	publishers[id].publish(msg);//CompressMsg(msg));
         seq++;
