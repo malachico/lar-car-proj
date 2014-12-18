@@ -38,7 +38,7 @@
 
 
 
-#include "stdafx.h"
+//#include "stdafx.h"
 
 #ifdef LINUX
 
@@ -62,9 +62,9 @@
 
 #include <vector>
 
-#include <process.h>
+//#include <process.h>
 
-#include <conio.h>
+//#include <conio.h>
 
 
 
@@ -292,15 +292,15 @@ bool FireSoftwareTrigger( GigECamera*pCam )
 
 //Thread for triggering the camera
 
-void TriggeringThread(void* pParams)
+void TriggeringThread(std::vector<GigECamera*>* pParams)
 
 {
 
 	std::vector<GigECamera*> *cameras;
 
-	int size = ((std::vector<GigECamera*>*)pParams)->size();
+	int size = (pParams)->size();
 
-	cameras = (static_cast<std::vector<GigECamera*>*>(pParams));
+	cameras = pParams;
 
 	//cameras = &((std::vector<GigECamera*>*)pParams);
 
@@ -331,22 +331,32 @@ void TriggeringThread(void* pParams)
 			//Software triggering the camera
 
 
-
+			printf("Firing\n");
 			bool retVal = FireSoftwareTrigger( masterCamera );
-
+			bool retVal1 = FireSoftwareTrigger( slaveCamera );
 			if ( !retVal )
 
 			{
 
 				printf("\nError firing software trigger!\n");      
 
-			}			
+			}
+			if ( !retVal1 )
+
+			{
+
+				printf("\nError firing software trigger!\n");      
+
+			}
 
 
 
 		}
+		else
+		  printf("no poll from slave\n");
 
 	}
+	printf("exiting firing thread\n");
 
 
 
@@ -354,15 +364,15 @@ void TriggeringThread(void* pParams)
 
 
 
-void RetrieveBufferThread(void* pParams)
+void RetrieveBufferThread(GigECamera* pParams,int id)
 
 {
 
-	GigECamera*cam=(GigECamera*) pParams;
+	GigECamera*cam= pParams;
 
 	Error error;
 
-	Image image;
+	Image rawImage;
 	int seq = 0;
 
 
@@ -370,13 +380,15 @@ void RetrieveBufferThread(void* pParams)
 
 	{
 
-		error = cam->RetrieveBuffer( &image );
+		error = cam->RetrieveBuffer( &rawImage );
 
 		if (error != PGRERROR_OK)
 
 		{
+		  printf("error in cam %d\n",id);
 
-			PrintError( error );            
+			PrintError( error );   
+			continue;
 
 		}
 		cv::Mat bayer8BitMat(rawImage.GetRows(), rawImage.GetCols(), CV_8UC1, rawImage.GetData());
@@ -396,6 +408,7 @@ void RetrieveBufferThread(void* pParams)
 		//msg->step = rawImage.GetStride();
 
 		publishers[id].publish(msg);//CompressMsg(msg));
+		printf("publish cam %d\n",id);
 		seq++;
 
 	}
@@ -423,16 +436,19 @@ void RetrieveBufferThread(void* pParams)
 		PrintError( error );            
 
 	}
-
+	printf("exiting poll thread %d\n",id);
 }
 
 
 
-int main(int /*argc*/, char** /*argv*/)
+int main(int argc, char** argv)
 
 { 
 
 	PrintBuildInfo();
+	ros::init(argc, argv, "flea3ros");
+	ros::NodeHandle n;
+	image_transport::ImageTransport it(n);
 
 
 
@@ -687,17 +703,23 @@ int main(int /*argc*/, char** /*argv*/)
 
 		streamChannel.packetSize=9000;
 
-
+		GigEImageSettingsInfo imageSettingsInfo;
+		error = cams[i]->GetGigEImageSettingsInfo( &imageSettingsInfo );
+		if (error != PGRERROR_OK)
+		{
+		    PrintError( error );
+		    return -1;
+		}
 
 		GigEImageSettings imageSettings;
 
 
 
-		imageSettings.height=964;
+		imageSettings.height=imageSettingsInfo.maxHeight;;
 
-		imageSettings.width=1228;
+		imageSettings.width=imageSettingsInfo.maxWidth;
 
-		imageSettings.pixelFormat = FlyCapture2::PIXEL_FORMAT_MONO8;
+		imageSettings.pixelFormat = FlyCapture2::PIXEL_FORMAT_RAW8;
 
 
 
@@ -930,8 +952,10 @@ int main(int /*argc*/, char** /*argv*/)
 			return -1;
 
 		} 
-
-
+		char topicName[20];
+		sprintf(topicName, "SENSORS/FLEA3/%d", i);
+// 	publishers[i] = n.advertise<sensor_msgs::Image>(topicName, 10);
+		publishers[i] = it.advertise(topicName, 10);
 
 		error = cams[i]->StartCapture();
 
@@ -951,11 +975,11 @@ int main(int /*argc*/, char** /*argv*/)
 
 
 
-	_beginthread(TriggeringThread,0,(void*) &cams);
+	boost::thread t(TriggeringThread,&cams);
 
-	_beginthread(RetrieveBufferThread,0,(void*)cams.at(0));
+	boost::thread t1(RetrieveBufferThread,cams.at(0),0);
 
-	_beginthread(RetrieveBufferThread,0,(void*)cams.at(1));//=============================================================================
+	boost::thread t2(RetrieveBufferThread,cams.at(1),1);//=============================================================================
 
 // Copyright © 2008 Point Grey Research, Inc. All Rights Reserved.
 
@@ -1009,7 +1033,7 @@ ros::AsyncSpinner spinner(4); // Use 4 threads
 
 
 	endCode=true;
-
+      printf("exiting\n");
 
 
 	getchar();
