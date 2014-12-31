@@ -7,7 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include "userHeader.h"
 #include "noiseless_estimator.h"
-#include "localization/GpsSpeed.h"
+#include "lar_msgs/GpsSpeed.h"
 using namespace std;
 using namespace cv;
 
@@ -36,7 +36,7 @@ void GasPedalStateCallback(const std_msgs::Float64& msg)
 {
 	_estimator.setGasPedalState(msg);
 }
-void GpsSpeedCallback(const localization::GpsSpeed& msg)
+void GpsSpeedCallback(const lar_msgs::GpsSpeed& msg)
 {
 	if(_added_noise)
 		_estimator.setGPSSpeedMeasurement(msg);

@@ -6,7 +6,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include <boost/filesystem.hpp>
 #include <sensor_msgs/CompressedImage.h>
-#include <stereo_package/Map.h>
+#include <lar_msgs/Map.h>
 #include <cv_bridge/cv_bridge.h>
 #include <boost/thread/thread.hpp>
 #include <std_msgs/Float64.h>
@@ -24,7 +24,7 @@
 
 using namespace cv;
 using std::vector;
-using stereo_package::MapCell;
+using lar_msgs::MapCell;
 // using namespace roadDetection;
 using namespace SimpleGUI;
 
@@ -123,7 +123,7 @@ void VisualThread()
 /**
  * Input Message Handlers
  */
-void handleMap(const stereo_package::Map& msg)
+void handleMap(const lar_msgs::Map& msg)
 {
   geometry_msgs::Pose pose = msg.info.origin;
   inputData.lock();

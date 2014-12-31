@@ -9,6 +9,7 @@ stereo_package
     std_msgs
     nav_msgs
 #     robil2conf
+lar_msgs
     gazebo_ros
 #     decision_making decision_making_parser
 )

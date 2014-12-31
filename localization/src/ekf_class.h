@@ -10,7 +10,7 @@
 #include "geometry_msgs/TwistStamped.h"
 #include "sensor_msgs/Imu.h"
 #include "std_msgs/Float64.h"
-#include "localization/GpsSpeed.h"
+#include "lar_msgs/GpsSpeed.h"
 
 class ekf:private ekf_props {
 	/*
@@ -44,7 +44,7 @@ public:
 	/*
 	 * set the speed measurement that the GPS provides
 	 */
-	void setGPSSpeedMeasurement(localization::GpsSpeed _speed);
+	void setGPSSpeedMeasurement(lar_msgs::GpsSpeed _speed);
 	/**
 	 * Perform the kalman filter estimation process
 	 */

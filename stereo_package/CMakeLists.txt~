@@ -2,7 +2,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(stereo_package)
 find_package(catkin REQUIRED COMPONENTS
-    message_generation
     roscpp rospy
     cv_bridge
     std_msgs
@@ -16,25 +15,12 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(gazebo REQUIRED)
 
 
-add_message_files(
-    DIRECTORY msg
-    FILES
-        MapCell.msg
-        Map.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  nav_msgs
-  )
 
 
 catkin_package(
 	CATKIN_DEPENDS
 # 	    robil2conf
 	    gazebo_ros
-	    message_runtime
 # 	    decision_making decision_making_parser
 )
 
@@ -57,5 +43,5 @@ target_link_libraries(stereo_package ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${Op
 link_directories(${GAZEBO_LIBRARY_DIRS})
 install(
   DIRECTORY pics/
-  DESTINATION $ENV{HOME}/.ros/
+  DESTINATION $ENV{HOME}/.ros
 )

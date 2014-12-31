@@ -92,7 +92,7 @@ void ekf::setIMUMeasurement(sensor_msgs::Imu measurement)
 	z.at<double>(9,0) = measurement.angular_velocity.z;
 
 }
-void ekf::setGPSSpeedMeasurement(localization::GpsSpeed _speed)
+void ekf::setGPSSpeedMeasurement(lar_msgs::GpsSpeed _speed)
 {
 	z.at<double>(2,0) = _speed.speed;
 }

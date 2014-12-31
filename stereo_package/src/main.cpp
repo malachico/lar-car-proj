@@ -5,7 +5,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/CompressedImage.h>
-#include <stereo_package/Map.h>
+#include <lar_msgs/Map.h>
 #include <cv_bridge/cv_bridge.h>
 #include <boost/thread/thread.hpp>
 #include <road_detection/roadLanes.h>
@@ -171,7 +171,7 @@ void ROSThread()
     inputData.unlock();
     
     
-    stereo_package::Map msg;
+    lar_msgs::Map msg;
     static int seq = 0;
     msg.header.seq = seq++;
     msg.header.stamp.sec = ros::Time::now().sec;
@@ -293,7 +293,7 @@ int main(int argc,char** argv)
   ros::Subscriber camR = n.subscribe("SENSORS/CAM/R/compressed", 10, handleCamCompressed_R);
   ros::Subscriber loc = n.subscribe("LOC/Pose", 10, handleLocalization);
   ros::Subscriber wlrs = n.subscribe("RoadLanes", 10, handleWalrusData);
-  pubMap = n.advertise<stereo_package::Map>("PER/Map", 10);
+  pubMap = n.advertise<lar_msgs::Map>("PER/Map", 10);
   
   boost::thread t1(StereoThread);
   boost::thread t2(MappingThread);

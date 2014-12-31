@@ -6,7 +6,7 @@
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "std_msgs/Float64.h"
-#include "localization/GpsSpeed.h"
+#include "lar_msgs/GpsSpeed.h"
 
 class Observer {
 	/*
@@ -34,7 +34,7 @@ public:
   /*
   * set the speed measurement that the GPS provides
   */
-  void setGPSSpeedMeasurement(localization::GpsSpeed measurement);
+  void setGPSSpeedMeasurement(lar_msgs::GpsSpeed measurement);
   
   /**
    * This function performs the estimation of location.
@@ -53,7 +53,7 @@ private:
     geometry_msgs::TwistStamped velocity;
     sensor_msgs::NavSatFix initialGPS, GPSmeasurement;
     sensor_msgs::Imu IMUmeasurement;
-    localization::GpsSpeed speedMeasurement;
+    lar_msgs::GpsSpeed speedMeasurement;
     bool first_GPS_flag;
     
     /**

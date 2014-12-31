@@ -1,5 +1,5 @@
 import rospy
-from stereo_package.msg import Map
+from lar_msgs.msg import Map
 import sys
 TIMES = 15
 cnt = 0

@@ -6,19 +6,11 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   roscpp
   cv_bridge
+  lar_msgs
 )
 find_package(OpenCV 2)
 find_package(Boost REQUIRED COMPONENTS system)
 
-add_message_files(
-    DIRECTORY msg
-    FILES
-        GpsSpeed.msg
-)
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  )
 
 catkin_package(
 

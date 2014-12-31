@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
     std_msgs
     nav_msgs
 #     robil2conf
+lar_msgs
     gazebo_ros
 #     lar_car_gui lar_car_gui_parser
 )
