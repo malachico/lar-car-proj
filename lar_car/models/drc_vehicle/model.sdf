@@ -37,6 +37,13 @@
       <flwheel_steering_d_gain>50</flwheel_steering_d_gain>
       <frwheel_steering_d_gain>50</frwheel_steering_d_gain>
     </plugin>
-
+    <plugin name="seat_mud" filename="libMudPlugin.so">
+      <contact_sensor_name>polaris_ranger_ev/chassis/seat_contact</contact_sensor_name>
+      <stiffness>0.0</stiffness>
+      <damping>100.0</damping>
+      <link_name>atlas::pelvis</link_name>
+      <link_name>atlas::r_uleg</link_name>
+      <link_name>atlas::l_uleg</link_name>
+    </plugin>
   </model>
 </sdf>
