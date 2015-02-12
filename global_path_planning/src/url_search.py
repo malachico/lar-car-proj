@@ -1,4 +1,5 @@
 import urllib
+import sys
 
 class WayPoint:
     def __init__(self,dist,dur,start,end):
@@ -104,18 +105,26 @@ def get_directions(orig,dest):
     status = status[status.find(':')+2:]
     return steps,status
 
-orig = 'Hazamir 12,Rishon Lezion'#'Tel aviv'#'New York'#
-dest = 'Kaplan 20, Qiryat Ono'#"Beer Sheva"#'Los Angeles'
-print 'getting directions from ',orig,' to', dest
-direction_list,status = get_directions(orig,dest)
-print 'status is: ',status
-print 'The directions are: '
-tot_dist = 0
-tot_dur = 0
-for wp in direction_list:
-    wp.print_point()
-    print '-------------'
-    tot_dist += wp.distance
-    tot_dur += wp.duration
-print 'Total Disance= ',tot_dist/1000.0
-print 'Total Duration= ',tot_dur/60.0
+if __name__ == '__main__':  
+  print "received: ",len(sys.argv),"inputs"
+  print sys.argv
+  print "-------------------"
+  
+  if len(sys.argv) > 0: orig = '31.26,34.80'#sys.argv[0]
+  else: orig = 'Hazamir 12,Rishon Lezion'#'Tel aviv'#'New York'#
+  if len(sys.argv) > 2: dest = sys.argv[1]
+  else: dest = 'Kaplan 20, Qiryat Ono'#"Beer Sheva"#'Los Angeles'
+  
+  print 'getting directions from ',orig,' to', dest
+  direction_list,status = get_directions(orig,dest)
+  print 'status is: ',status
+  print 'The directions are: '
+  tot_dist = 0
+  tot_dur = 0
+  for wp in direction_list:
+      wp.print_point()
+      print '-------------'
+      tot_dist += wp.distance
+      tot_dur += wp.duration
+  print 'Total Disance= ',tot_dist/1000.0
+  print 'Total Duration= ',tot_dur/60.0
