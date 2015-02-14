@@ -8,12 +8,15 @@ from geometry_msgs.msg import PoseStamped
 from url_search import *
 from gps_calculator import *
 
+init_pos = NavSatFix()
+init_pos.latitude = 31.26
+init_pos.longitude = 34.80
+
 def get_directions_service(req):
-    orig = "31.26,34.80"#"%f,%f"%(req.start.pose.position.x,req.start.pose.position.y)
-    dest = "Masarik 5, Bat Yam"#"%f,%f"%(req.goal.pose.position.x,req.goal.pose.position.y)
-    init_pos = NavSatFix()
-    init_pos.latitude = req.start.pose.position.x
-    init_pos.longitude = req.start.pose.position.y
+    p = xy2geo(init_pos,req.start)
+    orig = "%f,%f"%(p.latitude,p.longitude)
+    p = xy2geo(init_pos,req.goal)
+    dest = "%f,%f"%(p.latitude,p.longitude)
     print "From ", orig
     print "To ", dest
     print "--------"

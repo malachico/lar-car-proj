@@ -23,6 +23,6 @@ include_directories(
 )
 add_executable(loc_node src/main.cpp src/ekf_class.cpp src/noiseless_estimator.cpp)
 add_executable(user_function_example src/userHelperFunction/example.cpp)
-
+add_dependencies(loc_node ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(loc_node ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${OpenCV_LIBS})

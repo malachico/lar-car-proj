@@ -1,5 +1,7 @@
 import urllib
 import sys
+from xml.dom import minidom
+from sensor_msgs.msg import NavSatFix
 
 class WayPoint:
     def __init__(self,dist,dur,start,end):
@@ -95,7 +97,7 @@ def crop_step(steps):
 
 def get_directions(orig,dest):
     gurl = 'https://maps.googleapis.com/maps/api/directions/json?origin='+orig+'&destination='+dest+'&key=AIzaSyBM0qAALsDhCIM6oGTrHGdXiB6r4VHrZ0w'
-    print gurl
+    #print gurl
     directions = urllib.urlopen(gurl).read()
     start_indx = directions.find('"steps"')
     end_indx = directions.find(']',start_indx)
@@ -105,6 +107,19 @@ def get_directions(orig,dest):
     status = status[status.find(':')+2:]
     return steps,status
 
+def address2geo(address):
+    gurl = 'https://maps.googleapis.com/maps/api/geocode/xml?address='+address
+    res = urllib.urlopen(gurl).read()
+    ans = NavSatFix()
+    i1 = res.find('lat')
+    i2 = res.find('/lat',i1)
+    ans.latitude = float(res[i1+4:i2-1])
+    i1 = res.find('lng')
+    i2 = res.find('/lng',i1)
+    ans.longitude = float(res[i1+4:i2-1])
+    return ans
+    
+    
 if __name__ == '__main__':  
   print "received: ",len(sys.argv),"inputs"
   print sys.argv

@@ -4,6 +4,11 @@ import sys
 import rospy
 from nav_msgs.srv import GetPlan
 from geometry_msgs.msg import PoseStamped 
+from url_search import *
+from gps_calculator import *
+init_pos = NavSatFix()
+init_pos.latitude = 31.26
+init_pos.longitude = 34.80
 
 def get_directions(x, y):
     rospy.wait_for_service('/GPP')
@@ -15,14 +20,12 @@ def get_directions(x, y):
         print "Service call failed: %s"%e
 
 if __name__ == "__main__":
-    start = PoseStamped()
-    start.pose.position.x = 31.26
-    start.pose.position.y = 34.80
-    
-    goal = PoseStamped()
-    goal.pose.position.x = 31.2
-    goal.pose.position.y = 34.7
-    
+    address1 = 'HaZamir+12,Rishon+Lezion,+Israel'
+    address2 = 'Kaplan+20,Quiriat+Ono,+Israel'
+    start_p = address2geo(address1)
+    goal_p = address2geo(address2)
+    start = geo2xy(init_pos,start_p)
+    goal = geo2xy(init_pos,goal_p)
     directions = get_directions(start,goal)
     #print directions[0]
     x = []
