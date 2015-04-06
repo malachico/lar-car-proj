@@ -22,7 +22,6 @@ using std::vector;
 using namespace road_detection;
 
 
-
 /**
  * Frequency of doing stereo reconstruction and publishing height map
  */

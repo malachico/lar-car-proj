@@ -1,4 +1,7 @@
 import urllib
+import sys
+from xml.dom import minidom
+from sensor_msgs.msg import NavSatFix
 
 class WayPoint:
     def __init__(self,dist,dur,start,end):
@@ -94,7 +97,7 @@ def crop_step(steps):
 
 def get_directions(orig,dest):
     gurl = 'https://maps.googleapis.com/maps/api/directions/json?origin='+orig+'&destination='+dest+'&key=AIzaSyBM0qAALsDhCIM6oGTrHGdXiB6r4VHrZ0w'
-    print gurl
+    #print gurl
     directions = urllib.urlopen(gurl).read()
     start_indx = directions.find('"steps"')
     end_indx = directions.find(']',start_indx)
@@ -104,18 +107,39 @@ def get_directions(orig,dest):
     status = status[status.find(':')+2:]
     return steps,status
 
-orig = 'Hazamir 12,Rishon Lezion'#'Tel aviv'#'New York'#
-dest = 'Kaplan 20, Qiryat Ono'#"Beer Sheva"#'Los Angeles'
-print 'getting directions from ',orig,' to', dest
-direction_list,status = get_directions(orig,dest)
-print 'status is: ',status
-print 'The directions are: '
-tot_dist = 0
-tot_dur = 0
-for wp in direction_list:
-    wp.print_point()
-    print '-------------'
-    tot_dist += wp.distance
-    tot_dur += wp.duration
-print 'Total Disance= ',tot_dist/1000.0
-print 'Total Duration= ',tot_dur/60.0
+def address2geo(address):
+    gurl = 'https://maps.googleapis.com/maps/api/geocode/xml?address='+address
+    res = urllib.urlopen(gurl).read()
+    ans = NavSatFix()
+    i1 = res.find('lat')
+    i2 = res.find('/lat',i1)
+    ans.latitude = float(res[i1+4:i2-1])
+    i1 = res.find('lng')
+    i2 = res.find('/lng',i1)
+    ans.longitude = float(res[i1+4:i2-1])
+    return ans
+    
+    
+if __name__ == '__main__':  
+  print "received: ",len(sys.argv),"inputs"
+  print sys.argv
+  print "-------------------"
+  
+  if len(sys.argv) > 0: orig = '31.26,34.80'#sys.argv[0]
+  else: orig = 'Hazamir 12,Rishon Lezion'#'Tel aviv'#'New York'#
+  if len(sys.argv) > 2: dest = sys.argv[1]
+  else: dest = 'Kaplan 20, Qiryat Ono'#"Beer Sheva"#'Los Angeles'
+  
+  print 'getting directions from ',orig,' to', dest
+  direction_list,status = get_directions(orig,dest)
+  print 'status is: ',status
+  print 'The directions are: '
+  tot_dist = 0
+  tot_dur = 0
+  for wp in direction_list:
+      wp.print_point()
+      print '-------------'
+      tot_dist += wp.distance
+      tot_dur += wp.duration
+  print 'Total Disance= ',tot_dist/1000.0
+  print 'Total Duration= ',tot_dur/60.0

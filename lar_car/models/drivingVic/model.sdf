@@ -29,7 +29,7 @@
     
       <joint name='Camera_L' type='revolute'>
       <child>camera_l::camera_link</child>
-      <parent>car::polaris_ranger_ev::chassis</parent>
+      <parent>car::drc_vehicle_xp900::chassis</parent>
       <axis>
         <xyz>0 1 0</xyz>
         <limit>
@@ -42,7 +42,7 @@
     
           <joint name='Camera_R' type='revolute'>
       <child>camera_r::camera_link</child>
-      <parent>car::polaris_ranger_ev::chassis</parent>
+      <parent>car::drc_vehicle_xp900::chassis</parent>
       <axis>
         <xyz>0 1 0</xyz>
         <limit>
@@ -56,7 +56,7 @@
     
       <joint name='gps_ins' type='revolute'>
       <child>gps_ins::link</child>
-      <parent>car::polaris_ranger_ev::chassis</parent>
+      <parent>car::drc_vehicle_xp900::chassis</parent>
       <axis>
         <xyz>0 1 0</xyz>
         <limit>

@@ -15,4 +15,8 @@
     <arg name="headless" value="$(arg headless)"/>
 	<arg name="world_name" value="$(find lar_car)/worlds/terrain.world"/>
   </include>
+<!--group if="$(arg stereo)"-->
+<remap from="/SENSORS/CAM/L" to="/stereo/left/image_raw" />
+<remap from="/SENSORS/CAM/R" to="/stereo/right/image_raw" />
+<!--/group-->
 </launch>
