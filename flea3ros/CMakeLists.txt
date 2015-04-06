@@ -24,8 +24,8 @@ include_directories(
   /usr/include/flycapture
 )
 add_executable(flea3syncros src/asyncRos.cpp)
-add_executable(flea3ros src/GigEGrabEx.cpp)
-add_executable(flea3config src/GigEConfig.cpp)
+add_executable(flea3ros src/flea3ros.cpp)
+add_executable(flea3config src/flea3Config.cpp)
 add_executable(saveImages src/save_images.cpp)
 add_executable(flea3async src/AsyncTriggerEx.cpp)
 add_executable(createMovie src/createMovie.cpp)
