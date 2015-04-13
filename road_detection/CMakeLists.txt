@@ -171,7 +171,7 @@ add_library(dispImage
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_executable(listener src/listener.cpp)
+add_executable(listener src/road_detection.cpp)
 target_link_libraries(listener ${catkin_LIBRARIES})
 target_link_libraries(dispImage ${catkin_LIBRARIES})
 target_link_libraries(listener dispImage ${catkin_LIBRARIES} ${OpenCV_LIBS})
