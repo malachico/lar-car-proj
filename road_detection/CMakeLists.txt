@@ -106,9 +106,7 @@ include_directories(
 # add_library(roadDetection
 #   src/${PROJECT_NAME}/roadDetection.cpp
 # )
-add_library(dispImage
-  src/displayImage/DisplayImage.cpp
-) 
+
 ## Declare a cpp executable
 # add_executable(roadDetection_node src/roadDetection_node.cpp)
 
@@ -172,7 +170,7 @@ add_library(dispImage
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(listener src/road_detection.cpp)
-target_link_libraries(listener ${catkin_LIBRARIES})
-target_link_libraries(dispImage ${catkin_LIBRARIES})
-target_link_libraries(listener dispImage ${catkin_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(listener ${catkin_LIBRARIES} ${OpenCV_LIBS}) 
+#target_link_libraries(dispImage ${catkin_LIBRARIES})
+#target_link_libraries(listener dispImage ${catkin_LIBRARIES} ${OpenCV_LIBS})
 #target_link_libraries( roadDetection ${OpenCV_LIBS})
